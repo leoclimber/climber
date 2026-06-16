@@ -55,13 +55,14 @@ export default async function handler(req, res) {
 
       const user = await getOrCreateUser(email);
       const isPaid = user.plan === "starter" || user.plan === "pro";
-      const allowed = isPaid || user.posts_used < FREE_LIMIT;
+      const allowed = !user.blocked && (isPaid || user.posts_used < FREE_LIMIT);
 
       return res.status(200).json({
         email: user.email,
         postsUsed: user.posts_used,
         plan: user.plan,
         freeLimit: FREE_LIMIT,
+        blocked: !!user.blocked,
         allowed
       });
     }
@@ -75,8 +76,12 @@ export default async function handler(req, res) {
       const user = await getOrCreateUser(normalizedEmail);
       const isPaid = user.plan === "starter" || user.plan === "pro";
 
+      if (user.blocked) {
+        return res.status(403).json({ error: "Access blocked", allowed: false, blocked: true, postsUsed: user.posts_used, plan: user.plan });
+      }
+
       if (!isPaid && user.posts_used >= FREE_LIMIT) {
-        return res.status(403).json({ error: "Free limit reached", allowed: false, postsUsed: user.posts_used, plan: user.plan });
+        return res.status(403).json({ error: "Free limit reached", allowed: false, blocked: false, postsUsed: user.posts_used, plan: user.plan });
       }
 
       const newCount = user.posts_used + 1;
@@ -94,6 +99,7 @@ export default async function handler(req, res) {
         postsUsed: newCount,
         plan: user.plan,
         freeLimit: FREE_LIMIT,
+        blocked: false,
         allowed: true
       });
     }
