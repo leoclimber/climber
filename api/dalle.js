@@ -23,16 +23,23 @@ export default async function handler(req, res) {
         "Authorization": "Bearer " + OPENAI_KEY
       },
       body: JSON.stringify({
-        model: "dall-e-3",
+        model: "gpt-image-1",
         prompt: prompt,
         n: 1,
         size: "1024x1024",
-        quality: "standard"
+        quality: "medium"
       })
     });
 
     const data = await response.json();
-    const url = data.data && data.data[0] ? data.data[0].url : null;
+    let url = null;
+    if (data.data && data.data[0]) {
+      if (data.data[0].url) {
+        url = data.data[0].url;
+      } else if (data.data[0].b64_json) {
+        url = "data:image/png;base64," + data.data[0].b64_json;
+      }
+    }
 
     return res.status(200).json({ url, error: data.error ? data.error.message : null });
   } catch (err) {
