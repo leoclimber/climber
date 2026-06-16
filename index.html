@@ -48,7 +48,7 @@ const T = {
     postsLeft:"free posts left",
     emailLabel:"Your email", emailPh:"you@business.com",
     emailRequired:"Please enter a valid email to continue.",
-    continueBtn:"Continue", limitReached:"Free limit reached.",
+    continueBtn:"Continue", limitReached:"Free limit reached.", accessBlocked:"This account is blocked. Please contact support.",
     unlimitedPlan:"Unlimited posts on your plan",
     calTitle:"30-Day Content Calendar",
     calDesc:"Tell us about your business",
@@ -102,7 +102,7 @@ const T = {
     postsLeft:"posts grátis restantes",
     emailLabel:"Seu email", emailPh:"voce@negocio.com",
     emailRequired:"Digite um email válido para continuar.",
-    continueBtn:"Continuar", limitReached:"Limite grátis atingido.",
+    continueBtn:"Continuar", limitReached:"Limite grátis atingido.", accessBlocked:"Esta conta está bloqueada. Entre em contato com o suporte.",
     unlimitedPlan:"Posts ilimitados no seu plano",
     calTitle:"Calendário de Conteúdo de 30 Dias",
     calDesc:"Fale sobre o seu negócio",
@@ -156,7 +156,7 @@ const T = {
     postsLeft:"posts gratis restantes",
     emailLabel:"Tu email", emailPh:"tu@negocio.com",
     emailRequired:"Ingresa un email válido para continuar.",
-    continueBtn:"Continuar", limitReached:"Límite gratis alcanzado.",
+    continueBtn:"Continuar", limitReached:"Límite gratis alcanzado.", accessBlocked:"Esta cuenta está bloqueada. Contacta con soporte.",
     unlimitedPlan:"Posts ilimitados en tu plan",
     calTitle:"Calendario de Contenido de 30 Días",
     calDesc:"Cuéntanos sobre tu negocio",
@@ -247,7 +247,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail}){
       const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
       const regData=await reg.json();
       if(!reg.ok||!regData.allowed){
-        setUsage(regData);setLPost(false);setGenErr(regData.error||t.limitReached);return;
+        setUsage(regData);setLPost(false);setGenErr(regData.blocked?t.accessBlocked:(regData.error||t.limitReached));return;
       }
       setUsage(regData);
       const dp=desc?"\nBusiness owner says: "+desc:"";
