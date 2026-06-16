@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/dalle.js": {
+      "maxDuration": 60
+    },
+    "api/claude.js": {
+      "maxDuration": 30
+    }
+  }
+}
