@@ -52,6 +52,7 @@ const T = {
     calDetails:"Describe your business & this month's focus",
     calDetailsPh:"e.g. Irish pub in Dublin city centre. This month we're promoting our new Sunday roast menu, St Patrick's Day specials, and our weekly quiz nights every Thursday.",
     calBtn:"Build My 30-Day Calendar", calLoading:"Planning your month…",
+    calError:"Couldn't build the calendar. Please try again.",
     week:"Week", copyAll:"Copy All",
     promoTitle:"Promotions & Seasonal Posts",
     promoDesc:"Generate posts for your own promotions or upcoming events",
@@ -61,6 +62,7 @@ const T = {
     promoCustomPh:"e.g. Friday lunch deal — burger + fries + drink for €12. Every Friday in January.",
     promoOccasions:"Or generate for a seasonal occasion",
     promoBtn:"Generate Promo Posts", promoLoading:"Generating…", promoCopy:"Copy",
+    promoError:"Couldn't generate the posts. Please try again.",
     pricingTitle:"Simple pricing.", pricingSub:"Start free. Upgrade when ready.",
     starter:"Starter", starterPrice:"€19", starterPer:"/mo",
     starterFeatures:["50 posts/month","Instagram & Facebook","AI image generation","Hashtag generator","Email support"],
@@ -98,6 +100,7 @@ const T = {
     calDetails:"Descreva seu negócio e o foco deste mês",
     calDetailsPh:"ex: Salão de beleza em Dublin. Este mês estamos promovendo o novo serviço de escova progressiva, promoção de manicure às sextas, e desconto de 15% para novas clientes.",
     calBtn:"Montar Meu Calendário de 30 Dias", calLoading:"Planejando seu mês…",
+    calError:"Não foi possível montar o calendário. Tente novamente.",
     week:"Semana", copyAll:"Copiar Tudo",
     promoTitle:"Promoções e Posts Sazonais",
     promoDesc:"Gere posts para suas promoções próprias ou datas especiais",
@@ -107,6 +110,7 @@ const T = {
     promoCustomPh:"ex: Promoção de sexta — lanche completo por €10. Toda sexta de janeiro no restaurante.",
     promoOccasions:"Ou gere para uma data comemorativa",
     promoBtn:"Gerar Posts de Promoção", promoLoading:"Gerando…", promoCopy:"Copiar",
+    promoError:"Não foi possível gerar os posts. Tente novamente.",
     pricingTitle:"Preço simples.", pricingSub:"Comece grátis. Faça upgrade quando quiser.",
     starter:"Starter", starterPrice:"€19", starterPer:"/mês",
     starterFeatures:["50 posts/mês","Instagram & Facebook","Geração de imagens com IA","Gerador de hashtags","Suporte por email"],
@@ -144,6 +148,7 @@ const T = {
     calDetails:"Describe tu negocio y el enfoque de este mes",
     calDetailsPh:"ej: Salón de belleza en Dublín. Este mes promovemos el nuevo servicio de alisado, descuento de manicura los viernes, y 15% de descuento para nuevas clientas.",
     calBtn:"Crear Mi Calendario de 30 Días", calLoading:"Planificando…",
+    calError:"No se pudo crear el calendario. Inténtalo de nuevo.",
     week:"Semana", copyAll:"Copiar Todo",
     promoTitle:"Promociones y Posts de Temporada",
     promoDesc:"Genera posts para tus propias promociones o fechas especiales",
@@ -153,6 +158,7 @@ const T = {
     promoCustomPh:"ej: Promo del viernes — almuerzo completo por €10. Todos los viernes de enero en el restaurante.",
     promoOccasions:"O genera para una fecha especial",
     promoBtn:"Generar Posts de Promoción", promoLoading:"Generando…", promoCopy:"Copiar",
+    promoError:"No se pudieron generar los posts. Inténtalo de nuevo.",
     pricingTitle:"Precio simple.", pricingSub:"Empieza gratis. Actualiza cuando quieras.",
     starter:"Starter", starterPrice:"€19", starterPer:"/mes",
     starterFeatures:["50 posts/mes","Instagram & Facebook","Generación de imágenes IA","Generador de hashtags","Soporte por email"],
@@ -186,11 +192,9 @@ async function img(prompt){
   try {
     const r=await fetch("/api/dalle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
     const d=await r.json();
-    if(d.error) console.error("DALL-E error:",d.error);
-    return {url:d.url||null,error:d.error||null};
+    return d.url||null;
   } catch(e) {
-    console.error("DALL-E fetch failed:",e.message);
-    return {url:null,error:e.message};
+    return null;
   }
 }
 
@@ -207,7 +211,6 @@ function CreateTab({t,lang,used,setUsed}){
   const[lImg,setLImg]=React.useState(false);
   const[sel,setSel]=React.useState(0);
   const[copied,setCopied]=React.useState(false);
-  const[imgError,setImgError]=React.useState(null);
   const limit=used>=FREE_LIMIT;
 
   async function gen(){
@@ -221,14 +224,11 @@ function CreateTab({t,lang,used,setUsed}){
       const dc=desc?" Context:"+desc:"";
       const styles=["bright natural light, warm lifestyle photography","bold vibrant colors, modern graphic design with promotional badge","moody atmospheric, editorial photography style"];
       const urls=[];
-      let imgErr=null;
       for(const s of styles){
-        const res=await img("Professional social media photo for a "+type+" called '"+biz+"'."+dc+" Goal:"+t.goals[goal]+". Style: "+s+". No text overlay. No logos. Photorealistic, Instagram-ready, high quality.");
-        if(res.url) urls.push(res.url);
-        else if(res.error) imgErr=res.error;
+        const url=await img("Professional social media photo for a "+type+" called '"+biz+"'."+dc+" Goal:"+t.goals[goal]+". Style: "+s+". No text overlay. No logos. Photorealistic, Instagram-ready, high quality.");
+        if(url) urls.push(url);
         setImages([...urls]);
       }
-      setImgError(urls.length===0?imgErr:null);
     }catch(e){setResult({caption:"Error: "+e.message,hashtags:[],tip:""});setLPost(false);}
     setLImg(false);
   }
@@ -275,7 +275,6 @@ function CreateTab({t,lang,used,setUsed}){
       ),
       React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}},t.images),
       lImg&&React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:14,padding:32,textAlign:"center"}},React.createElement('div',{style:{fontSize:24,marginBottom:8}},"🎨"),React.createElement('div',{style:{fontWeight:700,color:"#0f172a",marginBottom:4}},t.imgLoading)),
-      !lImg&&imgError&&React.createElement('div',{style:{background:"#fef2f2",border:"2px solid #fecaca",borderRadius:14,padding:18,color:"#991b1b",fontSize:13,fontWeight:600}},"⚠️ Image generation failed: "+imgError),
       !lImg&&images.length>0&&React.createElement('div',null,
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}},
           images.map((url,i)=>React.createElement('div',{key:i,onClick:()=>setSel(i),style:{borderRadius:12,overflow:"hidden",aspectRatio:"1",cursor:"pointer",border:"3px solid "+(sel===i?"#0f172a":"transparent"),position:"relative"}},
@@ -295,15 +294,16 @@ function CalendarTab({t,lang}){
   const[details,setDetails]=React.useState("");
   const[weeks,setWeeks]=React.useState(null);
   const[loading,setLoading]=React.useState(false);
+  const[err,setErr]=React.useState(null);
 
   async function build(){
     if(!biz||!type||loading)return;
-    setLoading(true);setWeeks(null);
+    setLoading(true);setWeeks(null);setErr(null);
     try{
       const dp=details?"\nBusiness details: "+details:"";
       const raw=await ai('Business:"'+biz+'",Type:"'+type+'"'+dp+'\nCreate a 30-day social media content calendar. Mix platforms. Return ONLY valid JSON array of 4 weeks:\n[{"week":1,"days":[{"day":1,"platform":"Instagram","goal":"2-4 words","caption":"1-2 sentences","emoji":"1 emoji"},...]},...]',lang);
       const wm=raw.match(/\[[\s\S]*\]/);if(!wm)throw new Error("Bad cal response");setWeeks(JSON.parse(wm[0]));
-    }catch(e){setWeeks([]);}
+    }catch(e){setWeeks([]);setErr(e.message||"Unknown error");}
     setLoading(false);
   }
 
@@ -317,6 +317,7 @@ function CalendarTab({t,lang}){
       React.createElement('textarea',{value:details,onChange:e=>setDetails(e.target.value),placeholder:t.calDetailsPh,rows:4,style:{...F(),resize:"vertical",lineHeight:1.6}})
     ),
     React.createElement(Btn,{text:loading?"⏳ "+t.calLoading:"📅 "+t.calBtn,onClick:build,disabled:loading||!biz||!type}),
+    weeks&&weeks.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.calError+(err?" ("+err+")":"")),
     weeks&&weeks.length>0&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{display:"flex",justifyContent:"flex-end",marginBottom:12}},React.createElement('button',{onClick:cpAll,style:{padding:"9px 18px",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",color:"#0f172a"}},"📋 "+t.copyAll)),
       weeks.map((week,wi)=>React.createElement('div',{key:wi,style:{marginBottom:20}},
@@ -346,10 +347,11 @@ function PromosTab({t,lang}){
   const[promos,setPromos]=React.useState(null);
   const[loading,setLoading]=React.useState(false);
   const[copiedIdx,setCopiedIdx]=React.useState(null);
+  const[err,setErr]=React.useState(null);
 
   async function gen(){
     if(!biz||!type||loading)return;
-    setLoading(true);setPromos(null);
+    setLoading(true);setPromos(null);setErr(null);
     try{
       let prompt;
       if(custom){
@@ -360,7 +362,7 @@ function PromosTab({t,lang}){
       }
       const raw=await ai(prompt,lang);
       const pm=raw.match(/\[[\s\S]*\]/);if(!pm)throw new Error("Bad promo response");setPromos(JSON.parse(pm[0]));
-    }catch(e){setPromos([]);}
+    }catch(e){setPromos([]);setErr(e.message||"Unknown error");}
     setLoading(false);
   }
 
@@ -383,6 +385,7 @@ function PromosTab({t,lang}){
     ),
     React.createElement(Btn,{text:loading?"⏳ "+t.promoLoading:"🎉 "+t.promoBtn,onClick:gen,disabled:loading||!biz||!type||(!custom&&!occasion)}),
     !custom&&!occasion&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},{en:"Fill in your promotion or select an occasion above",pt:"Preencha sua promoção ou selecione uma data acima",es:"Completa tu promoción o selecciona una fecha arriba"}[lang]),
+    promos&&promos.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.promoError+(err?" ("+err+")":"")),
     promos&&promos.length>0&&React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginTop:24}},
       promos.map((p,i)=>React.createElement('div',{key:i,style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,position:"relative",overflow:"hidden"}},
         React.createElement('div',{style:{position:"absolute",top:0,left:0,right:0,height:3,background:"#0f172a"}}),
@@ -467,10 +470,10 @@ function App(){
           t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 0 auto",padding:"14px 20px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px"}},tb))
         ),
         React.createElement('div',{style:{padding:24}},
-          React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,used,setUsed})),
-          React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang})),
-          React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(PromosTab,{t,lang})),
-          React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(PricingTab,{t}))
+          tab===0&&React.createElement(CreateTab,{t,lang,used,setUsed}),
+          tab===1&&React.createElement(CalendarTab,{t,lang}),
+          tab===2&&React.createElement(PromosTab,{t,lang}),
+          tab===3&&React.createElement(PricingTab,{t})
         )
       )
     ),
