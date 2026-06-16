@@ -40,6 +40,7 @@ const T = {
     tones:["Friendly","Professional","Funny","Inspirational","Urgent","Storytelling"],
     btn:"Generate Post + Images", loading:"Creating your post…",
     imgLoading:"Generating 3 AI images… (~15 sec)",
+    imgError:"Couldn't generate images.",
     caption:"Caption", hashtags:"Hashtags", tip:"Pro Tip",
     images:"AI Generated Images — choose your favourite",
     copy:"Copy Post", copied:"✓ Copied!", regen:"Regenerate",
@@ -89,6 +90,7 @@ const T = {
     tones:["Amigável","Profissional","Divertido","Inspirador","Urgente","Narrativo"],
     btn:"Gerar Post + Imagens", loading:"Criando seu post…",
     imgLoading:"Gerando 3 imagens com IA… (~15 seg)",
+    imgError:"Não foi possível gerar as imagens.",
     caption:"Legenda", hashtags:"Hashtags", tip:"Dica Pro",
     images:"Imagens Geradas por IA — escolha a sua favorita",
     copy:"Copiar Post", copied:"✓ Copiado!", regen:"Gerar Novamente",
@@ -138,6 +140,7 @@ const T = {
     tones:["Amigable","Profesional","Divertido","Inspirador","Urgente","Narrativo"],
     btn:"Generar Post + Imágenes", loading:"Creando tu post…",
     imgLoading:"Generando 3 imágenes con IA… (~15 seg)",
+    imgError:"No se pudieron generar las imágenes.",
     caption:"Caption", hashtags:"Hashtags", tip:"Consejo Pro",
     images:"Imágenes Generadas por IA — elige tu favorita",
     copy:"Copiar Post", copied:"✓ Copiado!", regen:"Regenerar",
@@ -195,9 +198,10 @@ async function img(prompt){
   try {
     const r=await fetch("/api/dalle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
     const d=await r.json();
-    return d.url||null;
+    if(d.error) throw new Error(d.error);
+    return {url:d.url||null,error:null};
   } catch(e) {
-    return null;
+    return {url:null,error:e.message||"Unknown error"};
   }
 }
 
@@ -214,11 +218,12 @@ function CreateTab({t,lang,used,setUsed}){
   const[lImg,setLImg]=React.useState(false);
   const[sel,setSel]=React.useState(0);
   const[copied,setCopied]=React.useState(false);
+  const[imgErr,setImgErr]=React.useState(null);
   const limit=used>=FREE_LIMIT;
 
   async function gen(){
     if(!biz||!type||lPost||limit)return;
-    setLPost(true);setResult(null);setImages([]);setSel(0);
+    setLPost(true);setResult(null);setImages([]);setSel(0);setImgErr(null);
     try{
       const dp=desc?"\nBusiness owner says: "+desc:"";
       const raw=await ai('Business:"'+biz+'",Type:"'+type+'",Platform:'+platform+',Goal:'+t.goals[goal]+',Tone:'+t.tones[tone]+dp+'\nReturn ONLY valid JSON:{"caption":"compelling 2-4 sentence caption tailored to the description above","hashtags":["tag1","tag2","tag3","tag4","tag5","tag6","tag7"],"tip":"one short actionable tip specific to this post"}',lang);
@@ -227,11 +232,14 @@ function CreateTab({t,lang,used,setUsed}){
       const dc=desc?" Context:"+desc:"";
       const styles=["bright natural light, warm lifestyle photography","bold vibrant colors, modern graphic design with promotional badge","moody atmospheric, editorial photography style"];
       const urls=[];
+      let lastErr=null;
       for(const s of styles){
-        const url=await img("Professional social media photo for a "+type+" called '"+biz+"'."+dc+" Goal:"+t.goals[goal]+". Style: "+s+". No text overlay. No logos. Photorealistic, Instagram-ready, high quality.");
-        if(url) urls.push(url);
+        const res=await img("Professional social media photo for a "+type+" called '"+biz+"'."+dc+" Goal:"+t.goals[goal]+". Style: "+s+". No text overlay. No logos. Photorealistic, Instagram-ready, high quality.");
+        if(res.url) urls.push(res.url);
+        if(res.error) lastErr=res.error;
         setImages([...urls]);
       }
+      if(urls.length===0&&lastErr) setImgErr(lastErr);
     }catch(e){setResult({caption:"Error: "+e.message,hashtags:[],tip:""});setLPost(false);}
     setLImg(false);
   }
@@ -278,6 +286,7 @@ function CreateTab({t,lang,used,setUsed}){
       ),
       React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}},t.images),
       lImg&&React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:14,padding:32,textAlign:"center"}},React.createElement('div',{style:{fontSize:24,marginBottom:8}},"🎨"),React.createElement('div',{style:{fontWeight:700,color:"#0f172a",marginBottom:4}},t.imgLoading)),
+      !lImg&&images.length===0&&imgErr&&React.createElement('div',{style:{padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.imgError+" ("+imgErr+")"),
       !lImg&&images.length>0&&React.createElement('div',null,
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}},
           images.map((url,i)=>React.createElement('div',{key:i,onClick:()=>setSel(i),style:{borderRadius:12,overflow:"hidden",aspectRatio:"1",cursor:"pointer",border:"3px solid "+(sel===i?"#0f172a":"transparent"),position:"relative"}},
