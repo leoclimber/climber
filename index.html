@@ -63,7 +63,7 @@ const T = {
     promoCustom:"Your promotion or offer",
     promoCustomPh:"e.g. Friday lunch deal — burger + fries + drink for €12. Every Friday in January.",
     promoOccasions:"Or generate for a seasonal occasion",
-    promoBtn:"Generate Promo Posts", promoLoading:"Generating…", promoCopy:"Copy",
+    promoBtn:"Generate Promo Captions", promoLoading:"Generating…", promoCopy:"Copy",
     promoError:"Couldn't generate the posts. Please try again.",
     pricingTitle:"Simple pricing.", pricingSub:"Start free. Upgrade when ready.",
     starter:"Starter", starterPrice:"€19", starterPer:"/mo",
@@ -113,7 +113,7 @@ const T = {
     promoCustom:"Sua promoção ou oferta",
     promoCustomPh:"ex: Promoção de sexta — lanche completo por €10. Toda sexta de janeiro no restaurante.",
     promoOccasions:"Ou gere para uma data comemorativa",
-    promoBtn:"Gerar Posts de Promoção", promoLoading:"Gerando…", promoCopy:"Copiar",
+    promoBtn:"Gerar Legendas de Promoção", promoLoading:"Gerando…", promoCopy:"Copiar",
     promoError:"Não foi possível gerar os posts. Tente novamente.",
     pricingTitle:"Preço simples.", pricingSub:"Comece grátis. Faça upgrade quando quiser.",
     starter:"Starter", starterPrice:"€19", starterPer:"/mês",
@@ -163,7 +163,7 @@ const T = {
     promoCustom:"Tu promoción u oferta",
     promoCustomPh:"ej: Promo del viernes — almuerzo completo por €10. Todos los viernes de enero en el restaurante.",
     promoOccasions:"O genera para una fecha especial",
-    promoBtn:"Generar Posts de Promoción", promoLoading:"Generando…", promoCopy:"Copiar",
+    promoBtn:"Generar Textos de Promoción", promoLoading:"Generando…", promoCopy:"Copiar",
     promoError:"No se pudieron generar los posts. Inténtalo de nuevo.",
     pricingTitle:"Precio simple.", pricingSub:"Empieza gratis. Actualiza cuando quieras.",
     starter:"Starter", starterPrice:"€19", starterPer:"/mes",
@@ -294,7 +294,7 @@ function CreateTab({t,lang,used,setUsed}){
             sel===i&&React.createElement('div',{style:{position:"absolute",top:8,right:8,background:"#0f172a",color:"#fff",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900}},"✓")
           ))
         ),
-        React.createElement('a',{href:images[sel],target:"_blank",rel:"noreferrer",style:{display:"block",padding:"11px",background:"#0f172a",color:"#fff",borderRadius:12,fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center"}},"⬇ Download Image "+(sel+1))
+        React.createElement('a',{href:images[sel],download:"post-image-"+(sel+1)+".png",style:{display:"block",padding:"11px",background:"#0f172a",color:"#fff",borderRadius:12,fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center"}},"⬇ Download Image "+(sel+1))
       )
     )
   );
@@ -497,10 +497,10 @@ function App(){
           t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 0 auto",padding:"14px 20px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px"}},tb))
         ),
         React.createElement('div',{style:{padding:24}},
-          tab===0&&React.createElement(CreateTab,{t,lang,used,setUsed}),
-          tab===1&&React.createElement(CalendarTab,{t,lang}),
-          tab===2&&React.createElement(PromosTab,{t,lang}),
-          tab===3&&React.createElement(PricingTab,{t})
+          React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,used,setUsed})),
+          React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang})),
+          React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(PromosTab,{t,lang})),
+          React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(PricingTab,{t}))
         )
       )
     ),
