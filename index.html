@@ -458,7 +458,11 @@ function PromosTab({t,lang}){
   );
 }
 
-function PricingTab({t}){
+function PricingTab({t,email}){
+  function openCheckout(baseUrl){
+    const url = email ? (baseUrl + "?prefilled_email=" + encodeURIComponent(email)) : baseUrl;
+    window.open(url,"_blank");
+  }
   return React.createElement('div',null,
     React.createElement('div',{style:{textAlign:"center",marginBottom:36}},
       React.createElement('h2',{style:{fontSize:"clamp(28px,4vw,36px)",fontWeight:900,color:"#0f172a",letterSpacing:"-1px",marginBottom:8}},t.pricingTitle),
@@ -469,14 +473,14 @@ function PricingTab({t}){
         React.createElement('div',{style:{fontWeight:900,fontSize:20,color:"#0f172a",marginBottom:6}},t.starter),
         React.createElement('div',{style:{display:"flex",alignItems:"baseline",gap:3,marginBottom:24}},React.createElement('span',{style:{fontSize:48,fontWeight:900,color:"#0f172a",letterSpacing:"-2px"}},t.starterPrice),React.createElement('span',{style:{fontSize:14,color:"#94a3b8"}},t.starterPer)),
         React.createElement('div',{style:{borderTop:"1px solid #e2e8f0",paddingTop:20,marginBottom:24}},t.starterFeatures.map((f,i)=>React.createElement('div',{key:i,style:{display:"flex",gap:10,marginBottom:10,fontSize:13,color:"#475569"}},React.createElement('span',{style:{color:"#059669",fontWeight:800}},"✓"),f))),
-        React.createElement('button',{onClick:()=>window.open(STRIPE.starter,"_blank"),style:{width:"100%",padding:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:"pointer"}},t.starterCta)
+        React.createElement('button',{onClick:()=>openCheckout(STRIPE.starter),style:{width:"100%",padding:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:"pointer"}},t.starterCta)
       ),
       React.createElement('div',{style:{background:"#0f172a",borderRadius:20,padding:28,position:"relative",boxShadow:"0 20px 60px rgba(15,23,42,.25)"}},
         React.createElement('div',{style:{position:"absolute",top:-14,left:"50%",transform:"translateX(-50%)",background:"#f59e0b",color:"#000",borderRadius:100,padding:"4px 16px",fontSize:12,fontWeight:800,whiteSpace:"nowrap"}},t.proBadge),
         React.createElement('div',{style:{fontWeight:900,fontSize:20,color:"#fff",marginBottom:6}},t.pro),
         React.createElement('div',{style:{display:"flex",alignItems:"baseline",gap:3,marginBottom:24}},React.createElement('span',{style:{fontSize:48,fontWeight:900,color:"#f59e0b",letterSpacing:"-2px"}},t.proPrice),React.createElement('span',{style:{fontSize:14,color:"rgba(255,255,255,.5)"}},t.proPer)),
         React.createElement('div',{style:{borderTop:"1px solid rgba(255,255,255,.15)",paddingTop:20,marginBottom:24}},t.proFeatures.map((f,i)=>React.createElement('div',{key:i,style:{display:"flex",gap:10,marginBottom:10,fontSize:13,color:"rgba(255,255,255,.8)"}},React.createElement('span',{style:{color:"#f59e0b",fontWeight:800}},"✓"),f))),
-        React.createElement('button',{onClick:()=>window.open(STRIPE.pro,"_blank"),style:{width:"100%",padding:14,background:"#f59e0b",color:"#000",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:"pointer"}},t.proCta)
+        React.createElement('button',{onClick:()=>openCheckout(STRIPE.pro),style:{width:"100%",padding:14,background:"#f59e0b",color:"#000",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:"pointer"}},t.proCta)
       )
     ),
     React.createElement('div',{style:{textAlign:"center",marginTop:24,fontSize:13,color:"#94a3b8"}},t.pricingNote)
@@ -555,7 +559,7 @@ function App(){
           React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
           React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang})),
           React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(PromosTab,{t,lang})),
-          React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(PricingTab,{t}))
+          React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(PricingTab,{t,email}))
         )
       )
     ),
