@@ -2,7 +2,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const FREE_LIMIT = 3;
 const MS_30_DAYS = 30 * 24 * 60 * 60 * 1000;
-const PLAN_LIMITS = { starter: 50, pro: Infinity };
+const PLAN_LIMITS = { starter: 50, pro: 300 };
 
 async function sb(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
