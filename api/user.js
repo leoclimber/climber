@@ -1,11 +1,23 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const FREE_LIMIT = 3;
 const MS_30_DAYS = 30 * 24 * 60 * 60 * 1000;
-const PLAN_LIMITS = { starter: 50, pro: 300 };
 
-// Features that require a Pro plan — Starter users can only use "create".
+// Free plan: separate one-time trial allowances per feature.
+const FREE_LIMITS = { create: 3, calendar: 1, promo: 1 };
+
+// Paid plan monthly limits. Only "create" applies to Starter — Starter has
+// no access to calendar/promo at all (see PRO_ONLY_FEATURES below).
+const PLAN_LIMITS = {
+  starter: { create: 50 },
+  pro: { create: 300, calendar: 300, promo: 300 }
+};
+
+// Features that Starter cannot access under any circumstance (Free can
+// still demo them once each; Pro has full access).
 const PRO_ONLY_FEATURES = ["calendar", "promo"];
+
+// Maps a feature name to the DB column that tracks its usage count.
+const FEATURE_COLUMNS = { create: "posts_used", calendar: "calendar_used", promo: "promo_used" };
 
 async function sb(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
@@ -31,7 +43,7 @@ async function getOrCreateUser(email) {
   }
   const created = await sb("users", {
     method: "POST",
-    body: JSON.stringify({ email, posts_used: 0, plan: "free" })
+    body: JSON.stringify({ email, posts_used: 0, calendar_used: 0, promo_used: 0, plan: "free" })
   });
   if (created.ok && created.data && created.data.length > 0) {
     return created.data[0];
@@ -39,8 +51,8 @@ async function getOrCreateUser(email) {
   throw new Error("Could not create or fetch user");
 }
 
-// For paid plans, resets posts_used back to 0 every 30 days from cycle_start.
-// Free plan never resets (3 posts is a one-time trial).
+// For paid plans, resets all usage counters back to 0 every 30 days from
+// cycle_start. Free plan never resets (each trial allowance is one-time).
 async function applyMonthlyResetIfNeeded(user) {
   const isPaid = user.plan === "starter" || user.plan === "pro";
   if (!isPaid) return user;
@@ -51,7 +63,7 @@ async function applyMonthlyResetIfNeeded(user) {
   if (!cycleStart || (now.getTime() - cycleStart.getTime()) >= MS_30_DAYS) {
     const updated = await sb("users?email=eq." + encodeURIComponent(user.email), {
       method: "PATCH",
-      body: JSON.stringify({ posts_used: 0, cycle_start: now.toISOString() })
+      body: JSON.stringify({ posts_used: 0, calendar_used: 0, promo_used: 0, cycle_start: now.toISOString() })
     });
     if (updated.ok && updated.data && updated.data.length > 0) {
       return updated.data[0];
@@ -60,10 +72,24 @@ async function applyMonthlyResetIfNeeded(user) {
   return user;
 }
 
-// Decide whether a given feature is allowed for this user, independent of
-// the free-trial post counter. Returns { allowed, reason } where reason is
-// "blocked" | "free_limit" | "pro_required" | null.
-function checkFeatureAccess(user, feature, limit) {
+function getUsedCount(user, feature) {
+  const col = FEATURE_COLUMNS[feature] || "posts_used";
+  return user[col] || 0;
+}
+
+function getLimitForFeature(user, feature) {
+  const isFree = user.plan !== "starter" && user.plan !== "pro";
+  if (isFree) {
+    return FREE_LIMITS[feature] !== undefined ? FREE_LIMITS[feature] : 0;
+  }
+  const planLimits = PLAN_LIMITS[user.plan] || {};
+  return planLimits[feature] !== undefined ? planLimits[feature] : 0;
+}
+
+// Decide whether a given feature is allowed for this user.
+// Returns { allowed, reason } where reason is
+// "blocked" | "free_limit" | "pro_required" | "plan_limit" | null.
+function checkFeatureAccess(user, feature) {
   if (user.blocked) {
     return { allowed: false, reason: "blocked" };
   }
@@ -73,20 +99,24 @@ function checkFeatureAccess(user, feature, limit) {
   const isProOnlyFeature = PRO_ONLY_FEATURES.includes(feature);
 
   if (isFree) {
-    // Free plan: every feature shares the same 3-use trial bucket.
-    if (user.posts_used >= FREE_LIMIT) {
+    // Free plan: each feature has its own one-time trial allowance.
+    const used = getUsedCount(user, feature);
+    const limit = getLimitForFeature(user, feature);
+    if (used >= limit) {
       return { allowed: false, reason: "free_limit" };
     }
     return { allowed: true, reason: null };
   }
 
   if (isStarter && isProOnlyFeature) {
-    // Starter can't use Calendar/Promo at all, regardless of usage count.
+    // Starter never gets calendar/promo, regardless of usage count.
     return { allowed: false, reason: "pro_required" };
   }
 
   // Starter using "create", or Pro using anything: governed by plan limit.
-  if (user.posts_used >= limit) {
+  const used = getUsedCount(user, feature);
+  const limit = getLimitForFeature(user, feature);
+  if (used >= limit) {
     return { allowed: false, reason: "plan_limit" };
   }
   return { allowed: true, reason: null };
@@ -108,22 +138,22 @@ export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
       // Check current usage/status for an email, creating the user row if needed.
-      // Optional ?feature= lets the frontend ask "can I use this specific tab?"
+      // ?feature= lets the frontend ask "can I use this specific tab?" (defaults to "create")
       const email = (req.query && req.query.email || "").toLowerCase().trim();
       const feature = (req.query && req.query.feature || "create").toLowerCase().trim();
       if (!email) return res.status(400).json({ error: "Missing email" });
 
       const user = await applyMonthlyResetIfNeeded(await getOrCreateUser(email));
-      const isPaid = user.plan === "starter" || user.plan === "pro";
-      const limit = isPaid ? PLAN_LIMITS[user.plan] : FREE_LIMIT;
-      const access = checkFeatureAccess(user, feature, limit);
+      const access = checkFeatureAccess(user, feature);
+      const limit = getLimitForFeature(user, feature);
 
       return res.status(200).json({
         email: user.email,
         postsUsed: user.posts_used,
+        calendarUsed: user.calendar_used,
+        promoUsed: user.promo_used,
         plan: user.plan,
-        freeLimit: FREE_LIMIT,
-        planLimit: limit === Infinity ? null : limit,
+        featureLimit: limit,
         blocked: !!user.blocked,
         allowed: access.allowed,
         reason: access.reason
@@ -131,21 +161,19 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      // Increment post usage for an email, but only if still allowed for this feature
+      // Increment usage for an email on a specific feature, but only if still allowed
       const { email, feature: rawFeature } = req.body || {};
       const normalizedEmail = (email || "").toLowerCase().trim();
       const feature = (rawFeature || "create").toLowerCase().trim();
       if (!normalizedEmail) return res.status(400).json({ error: "Missing email" });
 
       const user = await applyMonthlyResetIfNeeded(await getOrCreateUser(normalizedEmail));
-      const isPaid = user.plan === "starter" || user.plan === "pro";
-      const limit = isPaid ? PLAN_LIMITS[user.plan] : FREE_LIMIT;
-      const access = checkFeatureAccess(user, feature, limit);
+      const access = checkFeatureAccess(user, feature);
 
       if (!access.allowed) {
         const errorMessages = {
           blocked: "Access blocked",
-          free_limit: "Free limit reached",
+          free_limit: "Free trial limit reached for this feature",
           pro_required: "This feature requires the Pro plan",
           plan_limit: "Plan limit reached"
         };
@@ -155,26 +183,32 @@ export default async function handler(req, res) {
           blocked: access.reason === "blocked",
           reason: access.reason,
           postsUsed: user.posts_used,
+          calendarUsed: user.calendar_used,
+          promoUsed: user.promo_used,
           plan: user.plan
         });
       }
 
-      const newCount = user.posts_used + 1;
+      const column = FEATURE_COLUMNS[feature] || "posts_used";
+      const newCount = getUsedCount(user, feature) + 1;
       const updated = await sb("users?email=eq." + encodeURIComponent(normalizedEmail), {
         method: "PATCH",
-        body: JSON.stringify({ posts_used: newCount })
+        body: JSON.stringify({ [column]: newCount })
       });
 
       if (!updated.ok) {
         return res.status(500).json({ error: "Could not update usage" });
       }
 
+      const updatedUser = updated.data[0];
+
       return res.status(200).json({
         email: normalizedEmail,
-        postsUsed: newCount,
+        postsUsed: updatedUser.posts_used,
+        calendarUsed: updatedUser.calendar_used,
+        promoUsed: updatedUser.promo_used,
         plan: user.plan,
-        freeLimit: FREE_LIMIT,
-        planLimit: limit === Infinity ? null : limit,
+        featureLimit: getLimitForFeature(user, feature),
         blocked: false,
         allowed: true
       });
