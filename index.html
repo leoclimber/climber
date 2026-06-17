@@ -217,7 +217,7 @@ async function img(prompt){
   }
 }
 
-function CreateTab({t,lang,email,usage,setUsage,saveEmail}){
+function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
   const[biz,setBiz]=React.useState("");
   const[type,setType]=React.useState("");
   const[desc,setDesc]=React.useState("");
@@ -295,7 +295,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail}){
       React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
     ),
     limit
-      ?React.createElement('div',{onClick:()=>window.open(STRIPE.starter,"_blank"),style:{background:"#0f172a",borderRadius:14,padding:"18px 22px",textAlign:"center",cursor:"pointer"}},React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#f59e0b"}},t.upgrade))
+      ?React.createElement('div',{onClick:()=>{setTab(3);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"18px 22px",textAlign:"center",cursor:"pointer"}},React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#f59e0b"}},t.upgrade))
       :React.createElement(Btn,{text:lPost?"⏳ "+t.loading:(email?"✦ "+t.btn:t.continueBtn),onClick:gen,disabled:lPost||!biz||!type}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
     usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?(FREE_LIMIT-usage.postsUsed)+" "+t.postsLeft:t.unlimitedPlan),
@@ -552,7 +552,7 @@ function App(){
           t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 0 auto",padding:"14px 20px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px"}},tb))
         ),
         React.createElement('div',{style:{padding:24}},
-          React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail})),
+          React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
           React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang})),
           React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(PromosTab,{t,lang})),
           React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(PricingTab,{t}))
