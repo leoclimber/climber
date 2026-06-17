@@ -4,6 +4,9 @@ const FREE_LIMIT = 3;
 const MS_30_DAYS = 30 * 24 * 60 * 60 * 1000;
 const PLAN_LIMITS = { starter: 50, pro: 300 };
 
+// Features that require a Pro plan — Starter users can only use "create".
+const PRO_ONLY_FEATURES = ["calendar", "promo"];
+
 async function sb(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
     ...options,
@@ -57,6 +60,38 @@ async function applyMonthlyResetIfNeeded(user) {
   return user;
 }
 
+// Decide whether a given feature is allowed for this user, independent of
+// the free-trial post counter. Returns { allowed, reason } where reason is
+// "blocked" | "free_limit" | "pro_required" | null.
+function checkFeatureAccess(user, feature, limit) {
+  if (user.blocked) {
+    return { allowed: false, reason: "blocked" };
+  }
+
+  const isFree = user.plan !== "starter" && user.plan !== "pro";
+  const isStarter = user.plan === "starter";
+  const isProOnlyFeature = PRO_ONLY_FEATURES.includes(feature);
+
+  if (isFree) {
+    // Free plan: every feature shares the same 3-use trial bucket.
+    if (user.posts_used >= FREE_LIMIT) {
+      return { allowed: false, reason: "free_limit" };
+    }
+    return { allowed: true, reason: null };
+  }
+
+  if (isStarter && isProOnlyFeature) {
+    // Starter can't use Calendar/Promo at all, regardless of usage count.
+    return { allowed: false, reason: "pro_required" };
+  }
+
+  // Starter using "create", or Pro using anything: governed by plan limit.
+  if (user.posts_used >= limit) {
+    return { allowed: false, reason: "plan_limit" };
+  }
+  return { allowed: true, reason: null };
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -72,14 +107,16 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === "GET") {
-      // Check current usage/status for an email, creating the user row if needed
+      // Check current usage/status for an email, creating the user row if needed.
+      // Optional ?feature= lets the frontend ask "can I use this specific tab?"
       const email = (req.query && req.query.email || "").toLowerCase().trim();
+      const feature = (req.query && req.query.feature || "create").toLowerCase().trim();
       if (!email) return res.status(400).json({ error: "Missing email" });
 
       const user = await applyMonthlyResetIfNeeded(await getOrCreateUser(email));
       const isPaid = user.plan === "starter" || user.plan === "pro";
       const limit = isPaid ? PLAN_LIMITS[user.plan] : FREE_LIMIT;
-      const allowed = !user.blocked && user.posts_used < limit;
+      const access = checkFeatureAccess(user, feature, limit);
 
       return res.status(200).json({
         email: user.email,
@@ -88,26 +125,38 @@ export default async function handler(req, res) {
         freeLimit: FREE_LIMIT,
         planLimit: limit === Infinity ? null : limit,
         blocked: !!user.blocked,
-        allowed
+        allowed: access.allowed,
+        reason: access.reason
       });
     }
 
     if (req.method === "POST") {
-      // Increment post usage for an email, but only if still allowed
-      const { email } = req.body || {};
+      // Increment post usage for an email, but only if still allowed for this feature
+      const { email, feature: rawFeature } = req.body || {};
       const normalizedEmail = (email || "").toLowerCase().trim();
+      const feature = (rawFeature || "create").toLowerCase().trim();
       if (!normalizedEmail) return res.status(400).json({ error: "Missing email" });
 
       const user = await applyMonthlyResetIfNeeded(await getOrCreateUser(normalizedEmail));
       const isPaid = user.plan === "starter" || user.plan === "pro";
       const limit = isPaid ? PLAN_LIMITS[user.plan] : FREE_LIMIT;
+      const access = checkFeatureAccess(user, feature, limit);
 
-      if (user.blocked) {
-        return res.status(403).json({ error: "Access blocked", allowed: false, blocked: true, postsUsed: user.posts_used, plan: user.plan });
-      }
-
-      if (user.posts_used >= limit) {
-        return res.status(403).json({ error: isPaid ? "Plan limit reached" : "Free limit reached", allowed: false, blocked: false, postsUsed: user.posts_used, plan: user.plan });
+      if (!access.allowed) {
+        const errorMessages = {
+          blocked: "Access blocked",
+          free_limit: "Free limit reached",
+          pro_required: "This feature requires the Pro plan",
+          plan_limit: "Plan limit reached"
+        };
+        return res.status(403).json({
+          error: errorMessages[access.reason] || "Not allowed",
+          allowed: false,
+          blocked: access.reason === "blocked",
+          reason: access.reason,
+          postsUsed: user.posts_used,
+          plan: user.plan
+        });
       }
 
       const newCount = user.posts_used + 1;
