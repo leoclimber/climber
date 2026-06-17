@@ -48,8 +48,10 @@ const T = {
     postsLeft:"free posts left",
     emailLabel:"Your email", emailPh:"you@business.com",
     emailRequired:"Please enter a valid email to continue.",
-    continueBtn:"Continue", limitReached:"Free limit reached.", accessBlocked:"This account is blocked. Please contact support.",
+    continueBtn:"Continue", limitReached:"Free limit reached.", planLimitReached:"You've reached your plan's monthly limit.", accessBlocked:"This account is blocked. Please contact support.",
     unlimitedPlan:"Unlimited posts on your plan",
+    proRequired:"This feature is only available on the Pro plan.",
+    proRequiredCta:"Upgrade to Pro →",
     calTitle:"30-Day Content Calendar",
     calDesc:"Tell us about your business",
     calBiz:"Business name", calBizPh:"e.g. The Crafty Pub",
@@ -102,8 +104,10 @@ const T = {
     postsLeft:"posts grátis restantes",
     emailLabel:"Seu email", emailPh:"voce@negocio.com",
     emailRequired:"Digite um email válido para continuar.",
-    continueBtn:"Continuar", limitReached:"Limite grátis atingido.", accessBlocked:"Esta conta está bloqueada. Entre em contato com o suporte.",
+    continueBtn:"Continuar", limitReached:"Limite grátis atingido.", planLimitReached:"Você atingiu o limite mensal do seu plano.", accessBlocked:"Esta conta está bloqueada. Entre em contato com o suporte.",
     unlimitedPlan:"Posts ilimitados no seu plano",
+    proRequired:"Este recurso está disponível apenas no plano Pro.",
+    proRequiredCta:"Assinar Pro →",
     calTitle:"Calendário de Conteúdo de 30 Dias",
     calDesc:"Fale sobre o seu negócio",
     calBiz:"Nome do negócio", calBizPh:"ex: Salão da Gabi",
@@ -156,8 +160,10 @@ const T = {
     postsLeft:"posts gratis restantes",
     emailLabel:"Tu email", emailPh:"tu@negocio.com",
     emailRequired:"Ingresa un email válido para continuar.",
-    continueBtn:"Continuar", limitReached:"Límite gratis alcanzado.", accessBlocked:"Esta cuenta está bloqueada. Contacta con soporte.",
+    continueBtn:"Continuar", limitReached:"Límite gratis alcanzado.", planLimitReached:"Has alcanzado el límite mensual de tu plan.", accessBlocked:"Esta cuenta está bloqueada. Contacta con soporte.",
     unlimitedPlan:"Posts ilimitados en tu plan",
+    proRequired:"Esta función solo está disponible en el plan Pro.",
+    proRequiredCta:"Obtener Pro →",
     calTitle:"Calendario de Contenido de 30 Días",
     calDesc:"Cuéntanos sobre tu negocio",
     calBiz:"Nombre del negocio", calBizPh:"ej: Salón de María",
@@ -244,10 +250,12 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
     }
     setLPost(true);setResult(null);setImages([]);setSel(0);setImgErr(null);setGenErr(null);
     try{
-      const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email})});
+      const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,feature:"create"})});
       const regData=await reg.json();
       if(!reg.ok||!regData.allowed){
-        setUsage(regData);setLPost(false);setGenErr(regData.blocked?t.accessBlocked:(regData.error||t.limitReached));return;
+        setUsage(regData);setLPost(false);
+        setGenErr(regData.blocked?t.accessBlocked:(regData.reason==="plan_limit"?t.planLimitReached:(regData.error||t.limitReached)));
+        return;
       }
       setUsage(regData);
       const dp=desc?"\nBusiness owner says: "+desc:"";
@@ -330,7 +338,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
   );
 }
 
-function CalendarTab({t,lang}){
+function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
   const[biz,setBiz]=React.useState("");
   const[type,setType]=React.useState("");
   const[details,setDetails]=React.useState("");
@@ -338,11 +346,33 @@ function CalendarTab({t,lang}){
   const[loading,setLoading]=React.useState(false);
   const[err,setErr]=React.useState(null);
   const[expanded,setExpanded]=React.useState(null);
+  const[emailInput,setEmailInput]=React.useState("");
+  const[genErr,setGenErr]=React.useState(null);
+  const[access,setAccess]=React.useState(null);
+
+  React.useEffect(()=>{
+    if(!email){setAccess(null);return;}
+    fetch("/api/user?email="+encodeURIComponent(email)+"&feature=calendar")
+      .then(r=>r.json()).then(d=>{if(!d.error)setAccess(d);}).catch(()=>{});
+  },[email]);
 
   async function build(){
     if(!biz||!type||loading)return;
-    setLoading(true);setWeeks(null);setErr(null);
+    if(!email){
+      if(!emailInput||!emailInput.includes("@")){setGenErr(t.emailRequired);return;}
+      saveEmail(emailInput.toLowerCase().trim());
+      return;
+    }
+    setLoading(true);setWeeks(null);setErr(null);setGenErr(null);
     try{
+      const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,feature:"calendar"})});
+      const regData=await reg.json();
+      setAccess(regData);
+      if(!reg.ok||!regData.allowed){
+        setLoading(false);
+        setGenErr(regData.blocked?t.accessBlocked:(regData.reason==="pro_required"?t.proRequired:(regData.reason==="plan_limit"?t.planLimitReached:t.limitReached)));
+        return;
+      }
       const dp=details?"\nBusiness details: "+details:"";
       const raw=await ai('Business:"'+biz+'",Type:"'+type+'"'+dp+'\nCreate a 30-day social media content calendar. Mix platforms. Return ONLY valid JSON array of 4 weeks:\n[{"week":1,"days":[{"day":1,"platform":"Instagram","goal":"2-4 words","caption":"1-2 sentences","emoji":"1 emoji"},...]},...]',lang);
       const wm=raw.match(/\[[\s\S]*\]/);if(!wm)throw new Error("Bad cal response");setWeeks(JSON.parse(wm[0]));
@@ -352,15 +382,30 @@ function CalendarTab({t,lang}){
 
   function cpAll(){if(!weeks)return;navigator.clipboard.writeText(weeks.flatMap(w=>w.days.map(d=>"Day "+d.day+" ("+d.platform+") — "+d.goal+"\n"+d.caption)).join("\n\n"));}
 
+  const proBlocked = access && !access.allowed && access.reason==="pro_required";
+
   return React.createElement('div',null,
-    React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.calBiz}),React.createElement('input',{value:biz,onChange:e=>setBiz(e.target.value),placeholder:t.calBizPh,style:F()})),
-    React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.calType}),React.createElement('input',{value:type,onChange:e=>setType(e.target.value),placeholder:t.calTypePh,style:F()})),
-    React.createElement('div',{style:{marginBottom:20}},
-      React.createElement(Lbl,{t:t.calDetails+" ✨"}),
-      React.createElement('div',{style:{fontSize:12,color:"#64748b",marginBottom:8,lineHeight:1.5}},t.calDetailsHint),
-      React.createElement('textarea',{value:details,onChange:e=>setDetails(e.target.value),placeholder:t.calDetailsPh,rows:4,style:{...F(),resize:"vertical",lineHeight:1.6}})
+    !email&&React.createElement('div',{style:{marginBottom:14}},
+      React.createElement(Lbl,{t:t.emailLabel}),
+      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
     ),
-    React.createElement(Btn,{text:loading?"⏳ "+t.calLoading:"📅 "+t.calBtn,onClick:build,disabled:loading||!biz||!type}),
+    proBlocked
+      ?React.createElement('div',{onClick:()=>{setTab(3);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"22px",textAlign:"center",cursor:"pointer"}},
+          React.createElement('div',{style:{fontSize:28,marginBottom:8}},"🔒"),
+          React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#fff",marginBottom:6}},t.proRequired),
+          React.createElement('div',{style:{fontWeight:800,fontSize:14,color:"#f59e0b"}},t.proRequiredCta)
+        )
+      :React.createElement(React.Fragment,null,
+          React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.calBiz}),React.createElement('input',{value:biz,onChange:e=>setBiz(e.target.value),placeholder:t.calBizPh,style:F()})),
+          React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.calType}),React.createElement('input',{value:type,onChange:e=>setType(e.target.value),placeholder:t.calTypePh,style:F()})),
+          React.createElement('div',{style:{marginBottom:20}},
+            React.createElement(Lbl,{t:t.calDetails+" ✨"}),
+            React.createElement('div',{style:{fontSize:12,color:"#64748b",marginBottom:8,lineHeight:1.5}},t.calDetailsHint),
+            React.createElement('textarea',{value:details,onChange:e=>setDetails(e.target.value),placeholder:t.calDetailsPh,rows:4,style:{...F(),resize:"vertical",lineHeight:1.6}})
+          ),
+          React.createElement(Btn,{text:loading?"⏳ "+t.calLoading:(email?"📅 "+t.calBtn:t.continueBtn),onClick:build,disabled:loading||!biz||!type}),
+          genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr)
+        ),
     weeks&&weeks.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.calError+(err?" ("+err+")":"")),
     weeks&&weeks.length>0&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}},
@@ -396,7 +441,7 @@ function CalendarTab({t,lang}){
   );
 }
 
-function PromosTab({t,lang}){
+function PromosTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
   const[biz,setBiz]=React.useState("");
   const[type,setType]=React.useState("");
   const[custom,setCustom]=React.useState("");
@@ -405,11 +450,33 @@ function PromosTab({t,lang}){
   const[loading,setLoading]=React.useState(false);
   const[copiedIdx,setCopiedIdx]=React.useState(null);
   const[err,setErr]=React.useState(null);
+  const[emailInput,setEmailInput]=React.useState("");
+  const[genErr,setGenErr]=React.useState(null);
+  const[access,setAccess]=React.useState(null);
+
+  React.useEffect(()=>{
+    if(!email){setAccess(null);return;}
+    fetch("/api/user?email="+encodeURIComponent(email)+"&feature=promo")
+      .then(r=>r.json()).then(d=>{if(!d.error)setAccess(d);}).catch(()=>{});
+  },[email]);
 
   async function gen(){
     if(!biz||!type||loading)return;
-    setLoading(true);setPromos(null);setErr(null);
+    if(!email){
+      if(!emailInput||!emailInput.includes("@")){setGenErr(t.emailRequired);return;}
+      saveEmail(emailInput.toLowerCase().trim());
+      return;
+    }
+    setLoading(true);setPromos(null);setErr(null);setGenErr(null);
     try{
+      const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,feature:"promo"})});
+      const regData=await reg.json();
+      setAccess(regData);
+      if(!reg.ok||!regData.allowed){
+        setLoading(false);
+        setGenErr(regData.blocked?t.accessBlocked:(regData.reason==="pro_required"?t.proRequired:(regData.reason==="plan_limit"?t.planLimitReached:t.limitReached)));
+        return;
+      }
       let prompt;
       if(custom){
         prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 social media posts for this promotion: '+custom+'\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence promotional post with urgency","hashtags":["tag1","tag2","tag3","tag4"]}]';
@@ -425,23 +492,37 @@ function PromosTab({t,lang}){
 
   function cp(p,i){navigator.clipboard.writeText(p.caption+"\n\n"+p.hashtags.map(h=>"#"+h.replace(/^#/,"")).join(" "));setCopiedIdx(i);setTimeout(()=>setCopiedIdx(null),2000);}
 
+  const proBlocked = access && !access.allowed && access.reason==="pro_required";
+
   return React.createElement('div',null,
-    React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.promoBiz}),React.createElement('input',{value:biz,onChange:e=>setBiz(e.target.value),placeholder:t.promoBizPh,style:F()})),
-    React.createElement('div',{style:{marginBottom:20}},React.createElement(Lbl,{t:t.promoType}),React.createElement('input',{value:type,onChange:e=>setType(e.target.value),placeholder:t.promoTypePh,style:F()})),
-    React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:16}},
-      React.createElement('div',{style:{fontWeight:700,fontSize:15,color:"#0f172a",marginBottom:4}},"🏷️ "+t.promoCustom),
-      React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:10}},{en:"Best option — describe exactly what you want to promote",pt:"Melhor opção — descreva exatamente o que quer promover",es:"Mejor opción — describe exactamente lo que quieres promocionar"}[lang]),
-      React.createElement('textarea',{value:custom,onChange:e=>{setCustom(e.target.value);if(e.target.value)setOccasion("");},placeholder:t.promoCustomPh,rows:3,style:{...F(),resize:"vertical",lineHeight:1.6}})
+    !email&&React.createElement('div',{style:{marginBottom:14}},
+      React.createElement(Lbl,{t:t.emailLabel}),
+      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
     ),
-    React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:20}},
-      React.createElement('div',{style:{fontWeight:700,fontSize:15,color:"#0f172a",marginBottom:10}})  ,
-      React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:10}},t.promoOccasions),
-      React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:7}},
-        OCCASIONS.map((o,i)=>React.createElement('button',{key:i,onClick:()=>{setOccasion(o);setCustom("");},style:{padding:"6px 12px",borderRadius:20,border:"2px solid "+(occasion===o?"#0f172a":"#e2e8f0"),background:occasion===o?"#0f172a":"#fff",color:occasion===o?"#fff":"#475569",fontWeight:600,fontSize:12,cursor:"pointer"}},o))
-      )
-    ),
-    React.createElement(Btn,{text:loading?"⏳ "+t.promoLoading:"🎉 "+t.promoBtn,onClick:gen,disabled:loading||!biz||!type||(!custom&&!occasion)}),
-    !custom&&!occasion&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},{en:"Fill in your promotion or select an occasion above",pt:"Preencha sua promoção ou selecione uma data acima",es:"Completa tu promoción o selecciona una fecha arriba"}[lang]),
+    proBlocked
+      ?React.createElement('div',{onClick:()=>{setTab(3);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"22px",textAlign:"center",cursor:"pointer"}},
+          React.createElement('div',{style:{fontSize:28,marginBottom:8}},"🔒"),
+          React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#fff",marginBottom:6}},t.proRequired),
+          React.createElement('div',{style:{fontWeight:800,fontSize:14,color:"#f59e0b"}},t.proRequiredCta)
+        )
+      :React.createElement(React.Fragment,null,
+          React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.promoBiz}),React.createElement('input',{value:biz,onChange:e=>setBiz(e.target.value),placeholder:t.promoBizPh,style:F()})),
+          React.createElement('div',{style:{marginBottom:20}},React.createElement(Lbl,{t:t.promoType}),React.createElement('input',{value:type,onChange:e=>setType(e.target.value),placeholder:t.promoTypePh,style:F()})),
+          React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:16}},
+            React.createElement('div',{style:{fontWeight:700,fontSize:15,color:"#0f172a",marginBottom:4}},"🏷️ "+t.promoCustom),
+            React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:10}},{en:"Best option — describe exactly what you want to promote",pt:"Melhor opção — descreva exatamente o que quer promover",es:"Mejor opción — describe exactamente lo que quieres promocionar"}[lang]),
+            React.createElement('textarea',{value:custom,onChange:e=>{setCustom(e.target.value);if(e.target.value)setOccasion("");},placeholder:t.promoCustomPh,rows:3,style:{...F(),resize:"vertical",lineHeight:1.6}})
+          ),
+          React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:20}},
+            React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:10}},t.promoOccasions),
+            React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:7}},
+              OCCASIONS.map((o,i)=>React.createElement('button',{key:i,onClick:()=>{setOccasion(o);setCustom("");},style:{padding:"6px 12px",borderRadius:20,border:"2px solid "+(occasion===o?"#0f172a":"#e2e8f0"),background:occasion===o?"#0f172a":"#fff",color:occasion===o?"#fff":"#475569",fontWeight:600,fontSize:12,cursor:"pointer"}},o))
+            )
+          ),
+          React.createElement(Btn,{text:loading?"⏳ "+t.promoLoading:(email?"🎉 "+t.promoBtn:t.continueBtn),onClick:gen,disabled:loading||!biz||!type||(!custom&&!occasion)}),
+          genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
+          !custom&&!occasion&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},{en:"Fill in your promotion or select an occasion above",pt:"Preencha sua promoção ou selecione uma data acima",es:"Completa tu promoción o selecciona una fecha arriba"}[lang])
+        ),
     promos&&promos.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.promoError+(err?" ("+err+")":"")),
     promos&&promos.length>0&&React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginTop:24}},
       promos.map((p,i)=>React.createElement('div',{key:i,style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,position:"relative",overflow:"hidden"}},
@@ -557,8 +638,8 @@ function App(){
         ),
         React.createElement('div',{style:{padding:24}},
           React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
-          React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang})),
-          React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(PromosTab,{t,lang})),
+          React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
+          React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(PromosTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
           React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(PricingTab,{t,email}))
         )
       )
