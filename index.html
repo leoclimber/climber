@@ -306,7 +306,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
       ?React.createElement('div',{onClick:()=>{setTab(3);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"18px 22px",textAlign:"center",cursor:"pointer"}},React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#f59e0b"}},t.upgrade))
       :React.createElement(Btn,{text:lPost?"⏳ "+t.loading:(email?"✦ "+t.btn:t.continueBtn),onClick:gen,disabled:lPost||!biz||!type}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
-    usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?(FREE_LIMIT-usage.postsUsed)+" "+t.postsLeft:t.unlimitedPlan),
+    usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:t.unlimitedPlan),
     result&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{height:1,background:"#e2e8f0",marginBottom:20}}),
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}},
