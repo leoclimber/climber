@@ -5,6 +5,9 @@
     },
     "api/claude.js": {
       "maxDuration": 30
+    },
+    "api/youtube.js": {
+      "maxDuration": 30
     }
   }
 }
