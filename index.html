@@ -720,10 +720,11 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
     const a=document.createElement("a");a.href=url;a.download="climber-calendar.txt";a.click();URL.revokeObjectURL(url);
   }
 
-  // Show preview for free/non-pro users
+  // Show preview for free/non-pro users - hooks must be before any return
+  const[modalDay,setModalDay]=React.useState(null);
+  const preview = CALENDAR_PREVIEW[lang]||CALENDAR_PREVIEW["en"]||[];
+
   if(freeUser||proBlocked){
-    const preview = CALENDAR_PREVIEW[lang]||CALENDAR_PREVIEW.en;
-    const[modalDay,setModalDay]=React.useState(null);
     return React.createElement('div',null,
       modalDay&&React.createElement(DayModal,{day:modalDay,onClose:()=>setModalDay(null),lang}),
       !email&&React.createElement('div',{style:{marginBottom:14}},
