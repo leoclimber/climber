@@ -107,7 +107,7 @@ const T = {
     starterFeatures:["50 posts/month","AI image generation","Hashtag generator","30 captions/month","Email support"],
     starterCta:"Get Starter",
     pro:"Pro", proPrice:"€39", proPer:"/mo", proBadge:"Most Popular",
-    proFeatures:["300 posts/month","All 5 platforms","30-day AI calendar","100 captions/month","Inspiration tab","3 AI images per post","Priority support"],
+    proFeatures:["Unlimited posts","All 5 platforms","30-day AI calendar","100 captions/month","Inspiration tab","3 AI images per post","Priority support"],
     proCta:"Get Pro",
     pricingNote:"All prices EUR · VAT may apply · Payments by Stripe 🔒",
     footer:"Made with ❤️ in Dublin · Climber © 2026",
@@ -193,7 +193,7 @@ const T = {
     starterFeatures:["50 posts/mês","Geração de imagens com IA","Gerador de hashtags","30 legendas/mês","Suporte por email"],
     starterCta:"Assinar Starter",
     pro:"Pro", proPrice:"€39", proPer:"/mês", proBadge:"Mais Popular",
-    proFeatures:["300 posts/mês","Todas as 5 plataformas","Calendário IA de 30 dias","100 legendas/mês","Aba Inspiração","3 imagens de IA por post","Suporte prioritário"],
+    proFeatures:["Posts ilimitados","Todas as 5 plataformas","Calendário IA de 30 dias","100 legendas/mês","Aba Inspiração","3 imagens de IA por post","Suporte prioritário"],
     proCta:"Assinar Pro",
     pricingNote:"Preços em EUR · IVA pode ser aplicado · Pagamentos via Stripe 🔒",
     footer:"Feito com ❤️ em Dublin · Climber © 2026",
@@ -278,7 +278,7 @@ const T = {
     starterFeatures:["50 posts/mes","Generación de imágenes IA","Generador de hashtags","30 captions/mes","Soporte por email"],
     starterCta:"Obtener Starter",
     pro:"Pro", proPrice:"€39", proPer:"/mes", proBadge:"Más Popular",
-    proFeatures:["300 posts/mes","Las 5 plataformas","Calendario IA 30 días","100 captions/mes","Pestaña Inspiración","3 imágenes IA por post","Soporte prioritario"],
+    proFeatures:["Posts ilimitados","Las 5 plataformas","Calendario IA 30 días","100 captions/mes","Pestaña Inspiración","3 imágenes IA por post","Soporte prioritario"],
     proCta:"Obtener Pro",
     pricingNote:"Precios en EUR · IVA puede aplicar · Pagos via Stripe 🔒",
     footer:"Hecho con ❤️ en Dublín · Climber © 2026",
@@ -293,17 +293,35 @@ const PLATFORMS=["Instagram","Facebook","LinkedIn","Twitter/X","Google Business"
 const PICONS={Instagram:"📸",Facebook:"👥",LinkedIn:"💼","Twitter/X":"🐦","Google Business":"🔍"};
 const OCCASIONS=["Father's Day","Summer Solstice","Halloween","Black Friday","Christmas","St Patrick's Day","Valentine's Day","Back to School","Easter","New Year's"];
 
-const CALENDAR_PREVIEW = [
-  {week:1,days:[
-    {day:1,platform:"Instagram",goal:"Introduce yourself",emoji:"👋",caption:"This is an example of what your calendar looks like. Each day has a caption, goal, and posting plan ready for you."},
-    {day:2,platform:"Facebook",goal:"Share a tip",emoji:"💡",caption:"Unlock your full calendar to get 30 days of content, captions, and video scripts tailored to your business."},
-    {day:3,platform:"Instagram",goal:"Behind the scenes",emoji:"🎬",caption:"Your calendar includes video scripts, filming instructions, hooks, and CTAs — everything you need to post with confidence."},
-    {day:4,platform:"Twitter/X",goal:"Engage followers",emoji:"💬",caption:"Example post placeholder — unlock to see your real content."},
-    {day:5,platform:"Instagram",goal:"Promo post",emoji:"🏷️",caption:"Example post placeholder — unlock to see your real content."},
-    {day:6,platform:"LinkedIn",goal:"Brand story",emoji:"✨",caption:"Example post placeholder — unlock to see your real content."},
-    {day:7,platform:"Instagram",goal:"Weekend special",emoji:"🎉",caption:"Example post placeholder — unlock to see your real content."},
-  ]}
-];
+const CALENDAR_PREVIEW = {
+  en:[
+    {day:1,platform:"Instagram",goal:"Introduce yourself",emoji:"👋",type:"post",caption:"This week we want to introduce ourselves! Write a caption telling your story — why you started, what makes you different, and what your customers can expect. Take a photo at your front door or workspace.",photo_instruction:"Take a photo at your front door or inside your space — show your face!",cta:"Follow us for weekly tips and offers."},
+    {day:2,platform:"Facebook",goal:"Share a tip",emoji:"💡",type:"post",caption:"Share one useful tip related to your business. For example, a restaurant could share 'how to pair wine with pasta'. Keep it short and helpful.",photo_instruction:"Take a photo of your product, space, or a simple graphic.",cta:"Save this tip and share it with a friend!"},
+    {day:3,platform:"Instagram",goal:"Behind the scenes",emoji:"🎬",type:"video",hook:"You've never seen what happens behind the scenes here — until now.",script_points:["Show your workspace or kitchen","Introduce your team or yourself","Show one step of your process"],filming_tip:"Film vertically, walking through your space. Keep it under 30 seconds.",cta:"Follow us to see more of what we do every day."},
+    {day:4,platform:"Twitter/X",goal:"Engage followers",emoji:"💬",type:"post",caption:"🔒 Unlock your full calendar to see this post.",photo_instruction:"",cta:""},
+    {day:5,platform:"Instagram",goal:"Promo post",emoji:"🏷️",type:"post",caption:"🔒 Unlock your full calendar to see this post.",photo_instruction:"",cta:""},
+    {day:6,platform:"LinkedIn",goal:"Brand story",emoji:"✨",type:"post",caption:"🔒 Unlock your full calendar to see this post.",photo_instruction:"",cta:""},
+    {day:7,platform:"Instagram",goal:"Weekend special",emoji:"🎉",type:"post",caption:"🔒 Unlock your full calendar to see this post.",photo_instruction:"",cta:""},
+  ],
+  pt:[
+    {day:1,platform:"Instagram",goal:"Apresente seu negócio",emoji:"👋",type:"post",caption:"Hoje é dia de se apresentar! Escreva uma legenda contando sua história — por que você começou, o que te diferencia e o que seus clientes podem esperar. Tire uma foto na entrada ou dentro do seu espaço.",photo_instruction:"Tire uma foto na porta do seu negócio ou dentro do espaço — apareça você também!",cta:"Nos siga para novidades e ofertas toda semana."},
+    {day:2,platform:"Facebook",goal:"Compartilhe uma dica",emoji:"💡",type:"post",caption:"Compartilhe uma dica útil relacionada ao seu negócio. Um restaurante pode falar sobre como harmonizar vinho com massas. Um salão pode dar dica de cuidado capilar. Curto e direto.",photo_instruction:"Tire foto do seu produto, espaço ou use uma imagem simples.",cta:"Salva essa dica e compartilha com alguém que precisa!"},
+    {day:3,platform:"Instagram",goal:"Bastidores",emoji:"🎬",type:"video",hook:"Você nunca viu o que acontece aqui por trás das câmeras — até hoje.",script_points:["Mostre seu espaço ou cozinha","Apresente sua equipe ou você mesmo","Mostre uma etapa do seu processo"],filming_tip:"Filme na vertical, caminhando pelo seu espaço. Mantenha abaixo de 30 segundos.",cta:"Me segue pra ver mais do que acontece aqui todo dia."},
+    {day:4,platform:"Twitter/X",goal:"Engajar seguidores",emoji:"💬",type:"post",caption:"🔒 Desbloqueie seu calendário para ver este post.",photo_instruction:"",cta:""},
+    {day:5,platform:"Instagram",goal:"Post de promoção",emoji:"🏷️",type:"post",caption:"🔒 Desbloqueie seu calendário para ver este post.",photo_instruction:"",cta:""},
+    {day:6,platform:"LinkedIn",goal:"História da marca",emoji:"✨",type:"post",caption:"🔒 Desbloqueie seu calendário para ver este post.",photo_instruction:"",cta:""},
+    {day:7,platform:"Instagram",goal:"Especial de fim de semana",emoji:"🎉",type:"post",caption:"🔒 Desbloqueie seu calendário para ver este post.",photo_instruction:"",cta:""},
+  ],
+  es:[
+    {day:1,platform:"Instagram",goal:"Preséntate",emoji:"👋",type:"post",caption:"¡Hoy es momento de presentarte! Escribe un caption contando tu historia — por qué empezaste, qué te diferencia y qué pueden esperar tus clientes. Toma una foto en la entrada o dentro de tu espacio.",photo_instruction:"Toma una foto en la puerta de tu negocio o dentro del espacio — ¡sal tú también!",cta:"Síguenos para novedades y ofertas cada semana."},
+    {day:2,platform:"Facebook",goal:"Comparte un consejo",emoji:"💡",type:"post",caption:"Comparte un consejo útil relacionado con tu negocio. Un restaurante puede hablar de maridaje. Un salón puede dar consejos de cuidado capilar. Corto y directo.",photo_instruction:"Toma foto de tu producto, espacio o usa una imagen simple.",cta:"¡Guarda este consejo y compártelo con alguien que lo necesite!"},
+    {day:3,platform:"Instagram",goal:"Behind the scenes",emoji:"🎬",type:"video",hook:"Nunca habías visto lo que pasa aquí detrás de cámaras — hasta hoy.",script_points:["Muestra tu espacio o cocina","Preséntate a ti o a tu equipo","Muestra un paso de tu proceso"],filming_tip:"Graba en vertical, caminando por tu espacio. Menos de 30 segundos.",cta:"Sígueme para ver más de lo que hacemos cada día."},
+    {day:4,platform:"Twitter/X",goal:"Engagement",emoji:"💬",type:"post",caption:"🔒 Desbloquea tu calendario para ver este post.",photo_instruction:"",cta:""},
+    {day:5,platform:"Instagram",goal:"Post de promoción",emoji:"🏷️",type:"post",caption:"🔒 Desbloquea tu calendario para ver este post.",photo_instruction:"",cta:""},
+    {day:6,platform:"LinkedIn",goal:"Historia de marca",emoji:"✨",type:"post",caption:"🔒 Desbloquea tu calendario para ver este post.",photo_instruction:"",cta:""},
+    {day:7,platform:"Instagram",goal:"Especial fin de semana",emoji:"🎉",type:"post",caption:"🔒 Desbloquea tu calendario para ver este post.",photo_instruction:"",cta:""},
+  ]
+};
 
 function F(){return{width:"100%",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:12,padding:"12px 14px",fontSize:14,outline:"none",color:"#0f172a",transition:"border-color .2s"};}
 function S(){return{...F(),appearance:"none",cursor:"pointer",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 12px center",paddingRight:36};}
@@ -575,25 +593,67 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
 
   // Show preview for free/non-pro users
   if(freeUser||proBlocked){
+    const preview = CALENDAR_PREVIEW[lang]||CALENDAR_PREVIEW.en;
+    const[previewExpanded,setPreviewExpanded]=React.useState(null);
     return React.createElement('div',null,
       !email&&React.createElement('div',{style:{marginBottom:14}},
         React.createElement(Lbl,{t:t.emailLabel}),
         React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
       ),
-      // Preview section
       React.createElement('div',{style:{marginBottom:20}},
         React.createElement('div',{style:{fontSize:13,fontWeight:700,color:"#64748b",marginBottom:12,textAlign:"center"}},t.calPreviewTitle),
-        React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginBottom:16}},
-          CALENDAR_PREVIEW[0].days.map((day,di)=>React.createElement('div',{key:di,style:{background:di<3?"#f8fafc":"#f1f5f9",borderRadius:10,padding:"10px 8px",border:"2px solid "+(di<3?"#e2e8f0":"#e2e8f0"),position:"relative",overflow:"hidden"}},
-            di>=3&&React.createElement('div',{style:{position:"absolute",inset:0,background:"rgba(248,250,252,0.85)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8,fontSize:18}},"🔒"),
-            React.createElement('div',{style:{fontSize:9,fontWeight:700,color:"#94a3b8",marginBottom:3}},"D"+day.day),
-            React.createElement('div',{style:{fontSize:16,marginBottom:3}},day.emoji),
-            React.createElement('div',{style:{fontSize:9,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 4px",marginBottom:3,display:"inline-block",fontWeight:700}},(day.platform||"IG").substring(0,2).toUpperCase()),
-            React.createElement('div',{style:{fontSize:9,fontWeight:600,color:"#0f172a",lineHeight:1.3}},day.goal)
-          ))
-        )
+        React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginBottom:8}},
+          preview.map((day,di)=>{
+            const locked=di>=3;
+            const isOpen=previewExpanded===di;
+            return React.createElement('div',{key:di,onClick:()=>!locked&&setPreviewExpanded(isOpen?null:di),style:{background:isOpen?"#eef2ff":locked?"#f1f5f9":"#f8fafc",borderRadius:10,padding:"10px 8px",border:"2px solid "+(isOpen?"#0f172a":locked?"#e2e8f0":"#e2e8f0"),cursor:locked?"default":"pointer",position:"relative",overflow:"hidden"}},
+              locked&&React.createElement('div',{style:{position:"absolute",inset:0,background:"rgba(248,250,252,0.88)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8,fontSize:18}},"🔒"),
+              React.createElement('div',{style:{fontSize:9,fontWeight:700,color:"#94a3b8",marginBottom:3}},"D"+day.day),
+              React.createElement('div',{style:{fontSize:16,marginBottom:3}},day.emoji),
+              React.createElement('div',{style:{fontSize:9,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 4px",marginBottom:3,display:"inline-block",fontWeight:700}},(day.platform).substring(0,2).toUpperCase()),
+              day.type==="video"&&!locked&&React.createElement('div',{style:{fontSize:8,background:"#7c3aed",color:"#fff",borderRadius:4,padding:"1px 4px",marginBottom:3,display:"inline-block",fontWeight:700,marginLeft:2}},"VID"),
+              React.createElement('div',{style:{fontSize:9,fontWeight:600,color:"#0f172a",lineHeight:1.3}},day.goal)
+            );
+          })
+        ),
+        // Expanded preview day detail
+        previewExpanded!==null&&preview[previewExpanded]&&React.createElement('div',{style:{marginTop:8,padding:16,background:"#eef2ff",border:"2px solid #0f172a",borderRadius:12}},()=>{
+          const day=preview[previewExpanded];
+          const isVideo=day.type==="video";
+          return React.createElement('div',null,
+            React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
+              React.createElement('span',{style:{fontSize:20}},day.emoji),
+              React.createElement('span',{style:{fontWeight:800,fontSize:14,color:"#0f172a"}},"Dia "+day.day+" — "+day.goal),
+              React.createElement('span',{style:{fontSize:10,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},day.platform),
+              isVideo&&React.createElement('span',{style:{fontSize:10,background:"#7c3aed",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},"VIDEO")
+            ),
+            isVideo
+              ?React.createElement('div',null,
+                  React.createElement('div',{style:{marginBottom:10}},
+                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎯 Gancho — primeira coisa que você fala:"),
+                    React.createElement('div',{style:{fontSize:14,color:"#0f172a",fontWeight:700,lineHeight:1.5,background:"#ede9fe",borderRadius:8,padding:"8px 12px"}},'"'+day.hook+'"')
+                  ),
+                  React.createElement('div',{style:{marginBottom:10}},
+                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎬 Roteiro:"),
+                    day.script_points.map((p,i)=>React.createElement('div',{key:i,style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:4}},React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p))
+                  ),
+                  React.createElement('div',{style:{marginBottom:10}},
+                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"📱 Como filmar:"),
+                    React.createElement('div',{style:{fontSize:13,color:"#334155",background:"#f8fafc",borderRadius:8,padding:"8px 12px"}},day.filming_tip)
+                  ),
+                  React.createElement('div',null,
+                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"✅ CTA — finalize com:"),
+                    React.createElement('div',{style:{fontSize:13,color:"#065f46",fontWeight:600,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}},'"'+day.cta+'"')
+                  )
+                )
+              :React.createElement('div',null,
+                  React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:10}},day.caption),
+                  day.photo_instruction&&React.createElement('div',{style:{background:"#fef3c7",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#92400e",fontWeight:600,marginBottom:8}},"📷 "+day.photo_instruction),
+                  day.cta&&React.createElement('div',{style:{background:"#f0fdf4",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#065f46",fontWeight:600}},"✅ "+day.cta)
+                )
+          );
+        })()
       ),
-      // CTA block
       React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:16,padding:"24px 22px",textAlign:"center",cursor:"pointer"}},
         React.createElement('div',{style:{fontSize:32,marginBottom:10}},"📅"),
         React.createElement('div',{style:{fontWeight:900,fontSize:18,color:"#fff",marginBottom:8}},t.calPreviewCta),
@@ -720,11 +780,14 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
         return;
       }
       let prompt;
-      if(custom){
-        prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 social media captions for this promotion: '+custom+'\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence promotional post with urgency","hashtags":["tag1","tag2","tag3","tag4"]}]';
+      if(occasion&&!custom){
+        prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 social media captions for: '+occasion+'\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence post","offer":"suggested discount or offer","hashtags":["tag1","tag2","tag3"]}]';
+      } else if(custom&&!occasion){
+        prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 social media captions for this: '+custom+'\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence post with urgency","hashtags":["tag1","tag2","tag3","tag4"]}]';
+      } else if(occasion&&custom){
+        prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 social media captions for: '+occasion+'. Also incorporate this promotion: '+custom+'\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence post","offer":"'+custom+'","hashtags":["tag1","tag2","tag3","tag4"]}]';
       } else {
-        const occ=occasion||OCCASIONS[0];
-        prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 social media captions for: '+occ+'\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence promotional post","offer":"suggested discount or offer","hashtags":["tag1","tag2","tag3"]}]';
+        prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 general social media captions to promote this business.\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence post","hashtags":["tag1","tag2","tag3","tag4"]}]';
       }
       const raw=await ai(prompt,lang);
       const pm=raw.match(/\[[\s\S]*\]/);if(!pm)throw new Error("Bad response");setPromos(JSON.parse(pm[0]));
@@ -734,6 +797,8 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
 
   function cp(p,i){navigator.clipboard.writeText(p.caption+"\n\n"+p.hashtags.map(h=>"#"+h.replace(/^#/,"")).join(" "));setCopiedIdx(i);setTimeout(()=>setCopiedIdx(null),2000);}
 
+  const captionCustomLabel={en:"Want to add your own promotion too? (optional)",pt:"Quer adicionar sua própria promoção também? (opcional)",es:"¿Quieres añadir tu propia promoción también? (opcional)"}[lang];
+
   return React.createElement('div',null,
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
@@ -741,19 +806,22 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
     ),
     React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.captionBiz}),React.createElement('input',{value:biz,onChange:e=>setBiz(e.target.value),placeholder:t.captionBizPh,style:F()})),
     React.createElement('div',{style:{marginBottom:20}},React.createElement(Lbl,{t:t.captionType}),React.createElement('input',{value:type,onChange:e=>setType(e.target.value),placeholder:t.captionTypePh,style:F()})),
+    // Occasions FIRST
     React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:16}},
-      React.createElement('div',{style:{fontWeight:700,fontSize:15,color:"#0f172a",marginBottom:4}},"🏷️ "+t.captionCustom),
-      React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:10}},{en:"Describe exactly what you want to promote",pt:"Descreva exatamente o que quer promover",es:"Describe exactamente lo que quieres promocionar"}[lang]),
-      React.createElement('textarea',{value:custom,onChange:e=>{setCustom(e.target.value);if(e.target.value)setOccasion("");},placeholder:t.captionCustomPh,rows:3,style:{...F(),resize:"vertical",lineHeight:1.6}})
-    ),
-    React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:20}},
-      React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:10}},t.captionOccasions),
+      React.createElement('div',{style:{fontWeight:700,fontSize:15,color:"#0f172a",marginBottom:4}},"📅 "+t.captionOccasions),
+      React.createElement('div',{style:{fontSize:13,color:"#64748b",marginBottom:12}},{en:"Select a date and generate ready-to-post captions",pt:"Selecione uma data e gere legendas prontas para postar",es:"Selecciona una fecha y genera captions listos para publicar"}[lang]),
       React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:7}},
-        OCCASIONS.map((o,i)=>React.createElement('button',{key:i,onClick:()=>{setOccasion(o);setCustom("");},style:{padding:"6px 12px",borderRadius:20,border:"2px solid "+(occasion===o?"#0f172a":"#e2e8f0"),background:occasion===o?"#0f172a":"#fff",color:occasion===o?"#fff":"#475569",fontWeight:600,fontSize:12,cursor:"pointer"}},o))
+        OCCASIONS.map((o,i)=>React.createElement('button',{key:i,onClick:()=>setOccasion(occasion===o?"":o),style:{padding:"6px 12px",borderRadius:20,border:"2px solid "+(occasion===o?"#0f172a":"#e2e8f0"),background:occasion===o?"#0f172a":"#fff",color:occasion===o?"#fff":"#475569",fontWeight:600,fontSize:12,cursor:"pointer"}},o))
       )
     ),
-    React.createElement(Btn,{text:loading?"⏳ "+t.captionLoading:"💬 "+t.captionBtn,onClick:gen,disabled:loading||!biz||!type||(!custom&&!occasion)}),
+    // Custom SECOND - optional
+    React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,marginBottom:20}},
+      React.createElement('div',{style:{fontWeight:700,fontSize:15,color:"#0f172a",marginBottom:4}},"✏️ "+captionCustomLabel),
+      React.createElement('textarea',{value:custom,onChange:e=>setCustom(e.target.value),placeholder:t.captionCustomPh,rows:3,style:{...F(),resize:"vertical",lineHeight:1.6,marginTop:8}})
+    ),
+    React.createElement(Btn,{text:loading?"⏳ "+t.captionLoading:"💬 "+t.captionBtn,onClick:gen,disabled:loading||!biz||!type}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
+    !custom&&!occasion&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},{en:"Select an occasion above or describe what you want to promote",pt:"Selecione uma data acima ou descreva o que quer promover",es:"Selecciona una fecha o describe lo que quieres promocionar"}[lang]),
     promos&&promos.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.captionError+(err?" ("+err+")":"")),
     promos&&promos.length>0&&React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginTop:24}},
       promos.map((p,i)=>React.createElement('div',{key:i,style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:16,padding:20,position:"relative",overflow:"hidden"}},
