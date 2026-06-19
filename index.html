@@ -645,6 +645,38 @@ function PreviewDayDetail({day,lang}){
   );
 }
 
+function ExpandedCalDay({day}){
+  const isVideo=day.type==="video"||!!day.hook;
+  return React.createElement('div',{style:{marginTop:10,padding:16,background:"#eef2ff",border:"2px solid #0f172a",borderRadius:12}},
+    React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
+      React.createElement('span',{style:{fontSize:20}},day.emoji||(isVideo?"🎬":"📸")),
+      React.createElement('span',{style:{fontWeight:800,fontSize:14,color:"#0f172a"}},"Day "+day.day+" — "+day.goal),
+      React.createElement('span',{style:{fontSize:10,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},day.platform),
+      isVideo&&React.createElement('span',{style:{fontSize:10,background:"#7c3aed",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},"VIDEO")
+    ),
+    isVideo
+      ?React.createElement('div',null,
+          day.hook&&React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎯 Hook — first thing you say:"),
+            React.createElement('div',{style:{fontSize:14,color:"#0f172a",fontWeight:700,lineHeight:1.5,background:"#ede9fe",borderRadius:8,padding:"8px 12px"}},'"'+day.hook+'"')
+          ),
+          day.script_points&&day.script_points.length>0&&React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎬 Script:"),
+            day.script_points.map((p,i)=>React.createElement('div',{key:i,style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:4}},React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p))
+          ),
+          day.filming_tip&&React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"📱 How to film:"),
+            React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6,background:"#f8fafc",borderRadius:8,padding:"8px 12px"}},day.filming_tip)
+          ),
+          day.cta&&React.createElement('div',null,
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"✅ CTA — end with:"),
+            React.createElement('div',{style:{fontSize:13,color:"#065f46",fontWeight:600,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}},'"'+day.cta+'"')
+          )
+        )
+      :React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6}},day.caption)
+  );
+}
+
 function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEntry}){
   const[biz,setBiz]=React.useState("");
   const[type,setType]=React.useState("");
@@ -658,6 +690,8 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
   const[genErr,setGenErr]=React.useState(null);
   const[access,setAccess]=React.useState(null);
   const[inspNote,setInspNote]=React.useState(null);
+  const[modalDay,setModalDay]=React.useState(null);
+  const preview = (CALENDAR_PREVIEW[lang] || CALENDAR_PREVIEW["en"] || []).slice();
 
   React.useEffect(()=>{
     if(inspirationEntry){setInspNote(inspirationEntry);}
@@ -720,10 +754,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
     const a=document.createElement("a");a.href=url;a.download="climber-calendar.txt";a.click();URL.revokeObjectURL(url);
   }
 
-  // Show preview for free/non-pro users - hooks must be before any return
-  const[modalDay,setModalDay]=React.useState(null);
-  const preview = CALENDAR_PREVIEW[lang]||CALENDAR_PREVIEW["en"]||[];
-
+  // Show preview for free/non-pro users
   if(freeUser||proBlocked){
     return React.createElement('div',null,
       modalDay&&React.createElement(DayModal,{day:modalDay,onClose:()=>setModalDay(null),lang}),
@@ -807,38 +838,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
             );
           })
         ),
-        expanded&&expanded.wi===wi&&week.days&&week.days[expanded.di]&&React.createElement('div',{style:{marginTop:10,padding:16,background:"#eef2ff",border:"2px solid #0f172a",borderRadius:12}},()=>{
-          const day=week.days[expanded.di];
-          const isVideo=day.type==="video"||!!day.hook;
-          return React.createElement('div',null,
-            React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
-              React.createElement('span',{style:{fontSize:20}},day.emoji||(isVideo?"🎬":"📸")),
-              React.createElement('span',{style:{fontWeight:800,fontSize:14,color:"#0f172a"}},"Day "+day.day+" — "+day.goal),
-              React.createElement('span',{style:{fontSize:10,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},day.platform),
-              isVideo&&React.createElement('span',{style:{fontSize:10,background:"#7c3aed",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},"VIDEO")
-            ),
-            isVideo
-              ?React.createElement('div',null,
-                  day.hook&&React.createElement('div',{style:{marginBottom:10}},
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎯 Hook — first thing you say:"),
-                    React.createElement('div',{style:{fontSize:14,color:"#0f172a",fontWeight:700,lineHeight:1.5,background:"#ede9fe",borderRadius:8,padding:"8px 12px"}},'"'+day.hook+'"')
-                  ),
-                  day.script_points&&day.script_points.length>0&&React.createElement('div',{style:{marginBottom:10}},
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎬 Script:"),
-                    day.script_points.map((p,i)=>React.createElement('div',{key:i,style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:4}},React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p))
-                  ),
-                  day.filming_tip&&React.createElement('div',{style:{marginBottom:10}},
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"📱 How to film:"),
-                    React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6,background:"#f8fafc",borderRadius:8,padding:"8px 12px"}},day.filming_tip)
-                  ),
-                  day.cta&&React.createElement('div',null,
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"✅ CTA — end with:"),
-                    React.createElement('div',{style:{fontSize:13,color:"#065f46",fontWeight:600,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}},'"'+day.cta+'"')
-                  )
-                )
-              :React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6}},day.caption)
-          );
-        })()
+        expanded&&expanded.wi===wi&&week.days&&week.days[expanded.di]&&React.createElement(ExpandedCalDay,{day:week.days[expanded.di]})
       ))
     )
   );
