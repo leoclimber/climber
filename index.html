@@ -31,7 +31,7 @@ const T = {
     h1:"Posts that", h1b:"actually sell.",
     sub:"Generate captions, hashtags & AI images for your business in seconds.",
     cta:"Generate Free Post →", note:"No credit card · 3 free posts",
-    tabs:["✦ Create","📅 Calendar","💬 Captions","✨ Inspiration","💰 Pricing"],
+    startBtn:"Start →",
     biz:"Business name", bizPh:"e.g. The Crafty Pub",
     type:"Business type", typePh:"e.g. Pub, Salon, Café",
     desc:"Describe your post", descPh:"Optional but recommended — e.g. Promote our new Margherita pizza with 20% off tonight. We use fresh local ingredients and it pairs great with our house wine.",
@@ -122,7 +122,8 @@ const T = {
     h1:"Posts que", h1b:"realmente vendem.",
     sub:"Gere legendas, hashtags e imagens de IA para o seu negócio em segundos.",
     cta:"Gerar Post Grátis →", note:"Sem cartão · 3 posts grátis",
-    tabs:["✦ Criar","📅 Calendário","💬 Legendas","✨ Inspiração","💰 Preços"],
+    startBtn:"Começar →",
+    tabs:["✦ Criar","💬 Legendas","✨ Inspiração","📅 Calendário","📋 Planos"],
     biz:"Nome do negócio", bizPh:"ex: Salão da Gabi",
     type:"Tipo de negócio", typePh:"ex: Salão, Academia, Restaurante",
     desc:"Descreva seu post", descPh:"Opcional mas recomendado — ex: Quero promover nossa pizza Margherita com 20% de desconto hoje à noite.",
@@ -207,7 +208,8 @@ const T = {
     h1:"Posts que", h1b:"realmente venden.",
     sub:"Genera captions, hashtags e imágenes de IA para tu negocio en segundos.",
     cta:"Generar Post Gratis →", note:"Sin tarjeta · 3 posts gratis",
-    tabs:["✦ Crear","📅 Calendario","💬 Captions","✨ Inspiración","💰 Precios"],
+    startBtn:"Empezar →",
+    tabs:["✦ Crear","💬 Captions","✨ Inspiración","📅 Calendario","📋 Planes"],
     biz:"Nombre del negocio", bizPh:"ej: Salón de María",
     type:"Tipo de negocio", typePh:"ej: Salón, Gym, Restaurante",
     desc:"Describe tu post", descPh:"Opcional pero recomendado — ej: Quiero promocionar nuestra pizza Margarita con 20% de descuento esta noche.",
@@ -516,6 +518,133 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
   );
 }
 
+function DayModal({day,onClose,lang}){
+  if(!day)return null;
+  const isVideo=day.type==="video";
+
+  function download(){
+    let content="";
+    if(isVideo){
+      content="DIA "+day.day+" — "+day.goal+"\nTIPO: VÍDEO\n\n";
+      if(day.hook) content+="🎯 GANCHO — primeira coisa que você fala:\n\""+day.hook+"\"\n\n";
+      if(day.script_points&&day.script_points.length) content+="🎬 ROTEIRO:\n"+day.script_points.map((p,i)=>(i+1)+". "+p).join("\n")+"\n\n";
+      if(day.filming_tip) content+="📱 COMO FILMAR:\n"+day.filming_tip+"\n\n";
+      if(day.cta) content+="✅ CTA — finalize com:\n\""+day.cta+"\"";
+    } else {
+      content="DIA "+day.day+" — "+day.goal+"\nTIPO: POST\n\n";
+      content+="📝 LEGENDA:\n"+day.caption+"\n\n";
+      if(day.photo_instruction) content+="📷 FOTO:\n"+day.photo_instruction+"\n\n";
+      if(day.cta) content+="✅ CTA:\n"+day.cta;
+    }
+    const blob=new Blob([content],{type:"text/plain"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="dia-"+day.day+"-plano.txt";a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const downloadLabel={en:"⬇ Download Day Plan",pt:"⬇ Baixar Plano do Dia",es:"⬇ Descargar Plan del Día"}[lang];
+  const exampleLabel={en:"📌 This is a generic example. Upgrade to Pro to get your personalised 30-day plan.",pt:"📌 Este é um exemplo genérico. Assine o Pro para ter seu plano personalizado de 30 dias.",es:"📌 Este es un ejemplo genérico. Obtén Pro para tener tu plan personalizado de 30 días."}[lang];
+
+  return React.createElement('div',{
+    onClick:onClose,
+    style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}
+  },
+    React.createElement('div',{
+      onClick:e=>e.stopPropagation(),
+      style:{background:"#fff",borderRadius:20,padding:24,maxWidth:480,width:"100%",maxHeight:"85vh",overflowY:"auto",position:"relative"}
+    },
+      // Header
+      React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
+        React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8}},
+          React.createElement('span',{style:{fontSize:24}},day.emoji),
+          React.createElement('div',null,
+            React.createElement('div',{style:{fontWeight:900,fontSize:16,color:"#0f172a"}},"Dia "+day.day+" — "+day.goal),
+            React.createElement('div',{style:{fontSize:12,color:"#94a3b8"}},day.platform+(isVideo?" · VIDEO":" · POST"))
+          )
+        ),
+        React.createElement('button',{onClick:onClose,style:{background:"none",border:"none",fontSize:22,cursor:"pointer",color:"#94a3b8",lineHeight:1}},"×")
+      ),
+      // Example warning
+      React.createElement('div',{style:{background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#92400e",fontWeight:600,marginBottom:16}},exampleLabel),
+      // Content
+      isVideo
+        ?React.createElement('div',null,
+            day.hook&&React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"🎯 Gancho — primeira coisa que você fala:"),
+              React.createElement('div',{style:{fontSize:15,fontWeight:700,color:"#0f172a",background:"#ede9fe",borderRadius:10,padding:"12px 14px",lineHeight:1.5}},'"'+day.hook+'"')
+            ),
+            day.script_points&&day.script_points.length>0&&React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"🎬 Roteiro:"),
+              day.script_points.map((p,i)=>React.createElement('div',{key:i,style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:8,padding:"10px 14px",marginBottom:6,fontSize:13,color:"#334155"}},
+                React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p
+              ))
+            ),
+            day.filming_tip&&React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"📱 Como filmar:"),
+              React.createElement('div',{style:{background:"#f8fafc",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#334155"}},day.filming_tip)
+            ),
+            day.cta&&React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"✅ CTA — finalize com:"),
+              React.createElement('div',{style:{background:"#f0fdf4",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#065f46",fontWeight:600}},'"'+day.cta+'"')
+            )
+          )
+        :React.createElement('div',null,
+            React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"📝 Legenda:"),
+              React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:10,padding:"12px 14px",fontSize:14,color:"#0f172a",lineHeight:1.7}},day.caption)
+            ),
+            day.photo_instruction&&React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#92400e",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"📷 Que foto tirar:"),
+              React.createElement('div',{style:{background:"#fef3c7",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#92400e",fontWeight:600}},day.photo_instruction)
+            ),
+            day.cta&&React.createElement('div',{style:{marginBottom:14}},
+              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"✅ CTA — escreva no final:"),
+              React.createElement('div',{style:{background:"#f0fdf4",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#065f46",fontWeight:600}},day.cta)
+            )
+          ),
+      // Download button
+      React.createElement('button',{onClick:download,style:{width:"100%",padding:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:12,fontWeight:800,fontSize:15,cursor:"pointer",marginTop:4}},downloadLabel)
+    )
+  );
+}
+
+function PreviewDayDetail({day,lang}){
+  const isVideo=day.type==="video";
+  return React.createElement('div',{style:{marginTop:8,padding:16,background:"#eef2ff",border:"2px solid #0f172a",borderRadius:12}},
+    React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
+      React.createElement('span',{style:{fontSize:20}},day.emoji),
+      React.createElement('span',{style:{fontWeight:800,fontSize:14,color:"#0f172a"}},"Dia "+day.day+" — "+day.goal),
+      React.createElement('span',{style:{fontSize:10,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},day.platform),
+      isVideo&&React.createElement('span',{style:{fontSize:10,background:"#7c3aed",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},"VIDEO")
+    ),
+    isVideo
+      ?React.createElement('div',null,
+          day.hook&&React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎯 Gancho — primeira coisa que você fala:"),
+            React.createElement('div',{style:{fontSize:14,color:"#0f172a",fontWeight:700,lineHeight:1.5,background:"#ede9fe",borderRadius:8,padding:"8px 12px"}},'"'+day.hook+'"')
+          ),
+          day.script_points&&day.script_points.length>0&&React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎬 Roteiro:"),
+            day.script_points.map((p,i)=>React.createElement('div',{key:i,style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:4}},React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p))
+          ),
+          day.filming_tip&&React.createElement('div',{style:{marginBottom:10}},
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"📱 Como filmar:"),
+            React.createElement('div',{style:{fontSize:13,color:"#334155",background:"#f8fafc",borderRadius:8,padding:"8px 12px"}},day.filming_tip)
+          ),
+          day.cta&&React.createElement('div',null,
+            React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"✅ CTA — finalize com:"),
+            React.createElement('div',{style:{fontSize:13,color:"#065f46",fontWeight:600,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}},'"'+day.cta+'"')
+          )
+        )
+      :React.createElement('div',null,
+          React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:10}},day.caption),
+          day.photo_instruction&&React.createElement('div',{style:{background:"#fef3c7",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#92400e",fontWeight:600,marginBottom:8}},"📷 "+day.photo_instruction),
+          day.cta&&React.createElement('div',{style:{background:"#f0fdf4",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#065f46",fontWeight:600}},"✅ "+day.cta)
+        )
+  );
+}
+
 function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEntry}){
   const[biz,setBiz]=React.useState("");
   const[type,setType]=React.useState("");
@@ -594,19 +723,25 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
   // Show preview for free/non-pro users
   if(freeUser||proBlocked){
     const preview = CALENDAR_PREVIEW[lang]||CALENDAR_PREVIEW.en;
-    const[previewExpanded,setPreviewExpanded]=React.useState(null);
+    const[modalDay,setModalDay]=React.useState(null);
     return React.createElement('div',null,
+      modalDay&&React.createElement(DayModal,{day:modalDay,onClose:()=>setModalDay(null),lang}),
       !email&&React.createElement('div',{style:{marginBottom:14}},
         React.createElement(Lbl,{t:t.emailLabel}),
         React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
       ),
       React.createElement('div',{style:{marginBottom:20}},
-        React.createElement('div',{style:{fontSize:13,fontWeight:700,color:"#64748b",marginBottom:12,textAlign:"center"}},t.calPreviewTitle),
+        React.createElement('div',{style:{fontSize:13,fontWeight:700,color:"#64748b",marginBottom:8,textAlign:"center"}},t.calPreviewTitle),
+        React.createElement('div',{style:{fontSize:12,color:"#0f172a",marginBottom:12,textAlign:"center",fontWeight:600,background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8,padding:"8px 12px"}},
+          {en:"👆 Tap on days 1, 2 or 3 to see exactly what to post and download your plan",pt:"👆 Toque nos dias 1, 2 ou 3 para ver exatamente o que postar e baixar o plano do dia",es:"👆 Toca los días 1, 2 o 3 para ver exactamente qué publicar y descargar tu plan"}[lang]
+        ),
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginBottom:8}},
           preview.map((day,di)=>{
             const locked=di>=3;
-            const isOpen=previewExpanded===di;
-            return React.createElement('div',{key:di,onClick:()=>!locked&&setPreviewExpanded(isOpen?null:di),style:{background:isOpen?"#eef2ff":locked?"#f1f5f9":"#f8fafc",borderRadius:10,padding:"10px 8px",border:"2px solid "+(isOpen?"#0f172a":locked?"#e2e8f0":"#e2e8f0"),cursor:locked?"default":"pointer",position:"relative",overflow:"hidden"}},
+            return React.createElement('div',{key:di,onClick:()=>!locked&&setModalDay(day),style:{background:locked?"#f1f5f9":"#f8fafc",borderRadius:10,padding:"10px 8px",border:"2px solid "+(locked?"#e2e8f0":"#0f172a"),cursor:locked?"default":"pointer",position:"relative",overflow:"hidden",transition:"transform .1s"},
+              onMouseEnter:e=>{if(!locked)e.currentTarget.style.transform="scale(1.05)"},
+              onMouseLeave:e=>{e.currentTarget.style.transform="scale(1)"}
+            },
               locked&&React.createElement('div',{style:{position:"absolute",inset:0,background:"rgba(248,250,252,0.88)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8,fontSize:18}},"🔒"),
               React.createElement('div',{style:{fontSize:9,fontWeight:700,color:"#94a3b8",marginBottom:3}},"D"+day.day),
               React.createElement('div',{style:{fontSize:16,marginBottom:3}},day.emoji),
@@ -615,44 +750,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
               React.createElement('div',{style:{fontSize:9,fontWeight:600,color:"#0f172a",lineHeight:1.3}},day.goal)
             );
           })
-        ),
-        // Expanded preview day detail
-        previewExpanded!==null&&preview[previewExpanded]&&React.createElement('div',{style:{marginTop:8,padding:16,background:"#eef2ff",border:"2px solid #0f172a",borderRadius:12}},()=>{
-          const day=preview[previewExpanded];
-          const isVideo=day.type==="video";
-          return React.createElement('div',null,
-            React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
-              React.createElement('span',{style:{fontSize:20}},day.emoji),
-              React.createElement('span',{style:{fontWeight:800,fontSize:14,color:"#0f172a"}},"Dia "+day.day+" — "+day.goal),
-              React.createElement('span',{style:{fontSize:10,background:PCOLORS[day.platform]||"#666",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},day.platform),
-              isVideo&&React.createElement('span',{style:{fontSize:10,background:"#7c3aed",color:"#fff",borderRadius:4,padding:"2px 6px",fontWeight:700}},"VIDEO")
-            ),
-            isVideo
-              ?React.createElement('div',null,
-                  React.createElement('div',{style:{marginBottom:10}},
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎯 Gancho — primeira coisa que você fala:"),
-                    React.createElement('div',{style:{fontSize:14,color:"#0f172a",fontWeight:700,lineHeight:1.5,background:"#ede9fe",borderRadius:8,padding:"8px 12px"}},'"'+day.hook+'"')
-                  ),
-                  React.createElement('div',{style:{marginBottom:10}},
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"🎬 Roteiro:"),
-                    day.script_points.map((p,i)=>React.createElement('div',{key:i,style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:4}},React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p))
-                  ),
-                  React.createElement('div',{style:{marginBottom:10}},
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"📱 Como filmar:"),
-                    React.createElement('div',{style:{fontSize:13,color:"#334155",background:"#f8fafc",borderRadius:8,padding:"8px 12px"}},day.filming_tip)
-                  ),
-                  React.createElement('div',null,
-                    React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}},"✅ CTA — finalize com:"),
-                    React.createElement('div',{style:{fontSize:13,color:"#065f46",fontWeight:600,background:"#f0fdf4",borderRadius:8,padding:"8px 12px"}},'"'+day.cta+'"')
-                  )
-                )
-              :React.createElement('div',null,
-                  React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6,marginBottom:10}},day.caption),
-                  day.photo_instruction&&React.createElement('div',{style:{background:"#fef3c7",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#92400e",fontWeight:600,marginBottom:8}},"📷 "+day.photo_instruction),
-                  day.cta&&React.createElement('div',{style:{background:"#f0fdf4",borderRadius:8,padding:"8px 12px",fontSize:13,color:"#065f46",fontWeight:600}},"✅ "+day.cta)
-                )
-          );
-        })()
+        )
       ),
       React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:16,padding:"24px 22px",textAlign:"center",cursor:"pointer"}},
         React.createElement('div',{style:{fontSize:32,marginBottom:10}},"📅"),
@@ -867,18 +965,28 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
     }
     setLoading(true);setResult(null);setErr(null);setGenErr(null);setPostChoice(null);setSentCal(false);
     try{
+      // First extract content from the link
+      const extractRes = await fetch("/api/youtube", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({url:link})
+      });
+      const extractData = await extractRes.json();
+      if(!extractRes.ok||extractData.error) throw new Error(extractData.error||"Could not read this link");
+      const extractedContent = extractData.content;
+
       const fmtNames=["Instagram Post","Reels Script","TikTok Script","Twitter/X Thread","LinkedIn Post"];
       const fmt=fmtNames[format];
       let prompt="";
       if(format===0){
-        prompt='I have a link: '+link+'\nExtract the main topic and key insights from it.\nCreate an Instagram post for a local business owner based on this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary of source content","caption":"ready-to-post Instagram caption 2-3 sentences","hashtags":["tag1","tag2","tag3","tag4","tag5"],"photo_instruction":"one sentence telling what photo to take to accompany this post"}';
+        prompt='Based on this content:\n'+extractedContent+'\n\nCreate an Instagram post for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary of source content","caption":"ready-to-post Instagram caption 2-3 sentences","hashtags":["tag1","tag2","tag3","tag4","tag5"],"photo_instruction":"one sentence telling what photo to take to accompany this post"}';
       } else if(format===1||format===2){
         const platform=format===1?"Reels":"TikTok";
-        prompt='I have a link: '+link+'\nExtract the main topic and key insights from it.\nCreate a '+platform+' video script for a local business owner based on this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","hook":"the very first sentence to say on camera — attention-grabbing","script_points":["point 1 to cover","point 2 to cover","point 3 to cover"],"filming_tip":"one sentence on how to film this (camera angle, movement, location)","cta":"the last thing to say to drive engagement","hashtags":["tag1","tag2","tag3","tag4","tag5"]}';
+        prompt='Based on this content:\n'+extractedContent+'\n\nCreate a '+platform+' video script for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","hook":"the very first sentence to say on camera — attention-grabbing","script_points":["point 1 to cover","point 2 to cover","point 3 to cover"],"filming_tip":"one sentence on how to film this (camera angle, movement, location)","cta":"the last thing to say to drive engagement","hashtags":["tag1","tag2","tag3","tag4","tag5"]}';
       } else if(format===3){
-        prompt='I have a link: '+link+'\nExtract the main topic and key insights.\nCreate a Twitter/X thread of 5 tweets for a local business owner based on this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","tweets":["tweet 1","tweet 2","tweet 3","tweet 4","tweet 5"]}';
+        prompt='Based on this content:\n'+extractedContent+'\n\nCreate a Twitter/X thread of 5 tweets for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","tweets":["tweet 1","tweet 2","tweet 3","tweet 4","tweet 5"]}';
       } else {
-        prompt='I have a link: '+link+'\nExtract the main topic and key insights.\nCreate a LinkedIn post for a local business owner based on this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","post":"professional LinkedIn post 3-4 sentences","hashtags":["tag1","tag2","tag3"]}';
+        prompt='Based on this content:\n'+extractedContent+'\n\nCreate a LinkedIn post for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","post":"professional LinkedIn post 3-4 sentences","hashtags":["tag1","tag2","tag3"]}';
       }
       const raw=await ai(prompt,lang);
       const jm=raw.match(/{[\s\S]*}/);if(!jm)throw new Error("Bad response");
@@ -905,7 +1013,7 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
   function sendToCalendar(){
     if(onSendToCalendar) onSendToCalendar(result.summary||result.caption||result.post||"");
     setSentCal(true);
-    setTimeout(()=>{setTab(1);window.scrollTo({top:0,behavior:"smooth"});},800);
+    setTimeout(()=>{setTab(3);window.scrollTo({top:0,behavior:"smooth"});},800);
   }
 
   function sendToCreate(){
@@ -924,6 +1032,9 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
   return React.createElement('div',null,
     React.createElement('div',{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#0c4a6e"}},
       "✨ "+t.inspDesc
+    ),
+    React.createElement('div',{style:{background:"#fef3c7",border:"1px solid #fcd34d",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:12,color:"#92400e",fontWeight:600}},
+      {en:"✅ Supported: YouTube links and blog articles — ❌ Not supported: TikTok, Spotify, Instagram",pt:"✅ Funciona com: links do YouTube e artigos de blog — ❌ Não funciona com: TikTok, Spotify, Instagram",es:"✅ Compatible: links de YouTube y artículos de blog — ❌ No compatible: TikTok, Spotify, Instagram"}[lang]
     ),
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
@@ -1087,7 +1198,7 @@ function App(){
       ),
       React.createElement('div',{style:{display:"flex",alignItems:"center",gap:6}},
         ["en","pt","es"].map(l=>React.createElement('button',{key:l,onClick:()=>setLang(l),style:{padding:"5px 10px",borderRadius:8,border:"1.5px solid "+(lang===l?"#0f172a":"#e2e8f0"),background:lang===l?"#0f172a":"transparent",color:lang===l?"#fff":"#64748b",fontWeight:700,fontSize:12,cursor:"pointer"}},T[l].flag+" "+T[l].code)),
-        React.createElement('button',{onClick:toApp,style:{padding:"9px 18px",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:4}},"Start →")
+        React.createElement('button',{onClick:toApp,style:{padding:"9px 18px",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:4}},t.startBtn)
       )
     ),
     React.createElement('section',{style:{paddingTop:110,paddingBottom:70,paddingLeft:24,paddingRight:24,maxWidth:820,margin:"0 auto",textAlign:"center"}},
@@ -1109,9 +1220,9 @@ function App(){
         ),
         React.createElement('div',{style:{padding:24}},
           React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt:createPrompt})),
-          React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CalendarTab,{t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEntry})),
-          React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(CaptionsTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
-          React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(InspirationTab,{t,lang,email,saveEmail,setTab,onSendToCalendar:(entry)=>setInspirationEntry(entry),onSendToCreate:(prompt)=>setCreatePrompt(prompt)})),
+          React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CaptionsTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
+          React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(InspirationTab,{t,lang,email,saveEmail,setTab,onSendToCalendar:(entry)=>setInspirationEntry(entry),onSendToCreate:(prompt)=>setCreatePrompt(prompt)})),
+          React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(CalendarTab,{t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEntry})),
           React.createElement('div',{style:{display:tab===4?"block":"none"}},React.createElement(PricingTab,{t,email}))
         )
       )
