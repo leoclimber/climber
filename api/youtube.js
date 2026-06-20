@@ -11,8 +11,8 @@ export default async function handler(req, res) {
       const videoId = extractYouTubeId(url);
       if (!videoId) return res.status(400).json({ error: "Invalid YouTube URL" });
 
-      const transcript = await getYouTubeTranscript(videoId);
-      return res.status(200).json({ content: transcript, type: "youtube" });
+      const content = await getYouTubeContent(videoId);
+      return res.status(200).json({ content, type: "youtube" });
     } else {
       const articleText = await getArticleText(url);
       return res.status(200).json({ content: articleText, type: "article" });
@@ -36,52 +36,43 @@ function extractYouTubeId(url) {
   return null;
 }
 
-async function getYouTubeTranscript(videoId) {
-  // Fetch the YouTube page to get captions
-  const pageRes = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      "Accept-Language": "en-US,en;q=0.9",
-    },
-  });
+async function getYouTubeContent(videoId) {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) throw new Error("YouTube API key not configured");
 
-  const html = await pageRes.text();
+  const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`;
+  const res = await fetch(apiUrl);
+  const data = await res.json();
 
-  // Extract video title
-  const titleMatch = html.match(/<title>([^<]+)<\/title>/);
-  const title = titleMatch ? titleMatch[1].replace(" - YouTube", "").trim() : "YouTube Video";
-
-  // Find captions URL from page source
-  const captionMatch = html.match(/"captionTracks":\s*\[{"baseUrl":"([^"]+)"/);
-
-  if (!captionMatch) {
-    // No captions available — return title and description only
-    const descMatch = html.match(/"shortDescription":"([^"]{0,500})"/);
-    const desc = descMatch ? descMatch[1].replace(/\\n/g, " ").replace(/\\"/g, '"') : "";
-    return `Title: ${title}\n\nDescription: ${desc}\n\nNote: No captions available for this video.`;
+  if (data.error) {
+    throw new Error(data.error.message || "YouTube API error");
   }
 
-  const captionUrl = captionMatch[1].replace(/\\u0026/g, "&");
-  const captionRes = await fetch(captionUrl);
-  const captionXml = await captionRes.text();
-
-  // Parse XML captions
-  const texts = [];
-  const regex = /<text[^>]*>([^<]+)<\/text>/g;
-  let match;
-  while ((match = regex.exec(captionXml)) !== null) {
-    const text = match[1]
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .trim();
-    if (text) texts.push(text);
+  if (!data.items || data.items.length === 0) {
+    throw new Error("Video not found or unavailable");
   }
 
-  const transcript = texts.join(" ").substring(0, 4000);
-  return `Title: ${title}\n\nTranscript:\n${transcript}`;
+  const video = data.items[0];
+  const snippet = video.snippet;
+
+  const title = snippet.title || "";
+  const description = snippet.description || "";
+  const channelTitle = snippet.channelTitle || "";
+  const tags = snippet.tags ? snippet.tags.join(", ") : "";
+
+  if (!title && !description) {
+    throw new Error("No content available for this video");
+  }
+
+  let content = `Video Title: ${title}\n\nChannel: ${channelTitle}\n\n`;
+  if (description) {
+    content += `Description: ${description.substring(0, 2000)}\n\n`;
+  }
+  if (tags) {
+    content += `Tags: ${tags}\n\n`;
+  }
+
+  return content;
 }
 
 async function getArticleText(url) {
@@ -94,11 +85,9 @@ async function getArticleText(url) {
 
   const html = await res.text();
 
-  // Extract title
   const titleMatch = html.match(/<title>([^<]+)<\/title>/);
   const title = titleMatch ? titleMatch[1].trim() : "Article";
 
-  // Remove scripts, styles, nav, footer, header
   const cleaned = html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -108,6 +97,10 @@ async function getArticleText(url) {
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+  if (!cleaned || cleaned.length < 50) {
+    throw new Error("Could not extract readable content from this page");
+  }
 
   const text = cleaned.substring(0, 4000);
   return `Title: ${title}\n\nContent:\n${text}`;
