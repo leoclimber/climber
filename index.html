@@ -958,6 +958,26 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
   },[email]);
 
   const proBlocked = access && !access.allowed && access.reason==="pro_required";
+  const cachedContentRef = React.useRef(null);
+  const cachedLinkRef = React.useRef(null);
+
+  async function generateForFormat(fmt, extractedContent){
+    const fmtNames=["Instagram Post","Reels Script","TikTok Script","Twitter/X Thread","LinkedIn Post"];
+    let prompt="";
+    if(fmt===0){
+      prompt='Based on this content:\n'+extractedContent+'\n\nCreate an Instagram post for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary of source content","caption":"ready-to-post Instagram caption 2-3 sentences","hashtags":["tag1","tag2","tag3","tag4","tag5"],"photo_instruction":"one sentence telling what photo to take to accompany this post"}';
+    } else if(fmt===1||fmt===2){
+      const platform=fmt===1?"Reels":"TikTok";
+      prompt='Based on this content:\n'+extractedContent+'\n\nCreate a '+platform+' video script for a local business owner inspired by this content. The script does not need to be about the same business or topic in the source — adapt the lesson, story or insight to a generic local business context.\nYou MUST fill in every field below with real content, never leave any field empty.\nReturn ONLY valid JSON in this exact shape: {"summary":"2 sentence summary of the source content","hook":"the very first sentence to say on camera — attention-grabbing, under 15 words","script_points":["point 1 to cover","point 2 to cover","point 3 to cover"],"filming_tip":"one sentence on how to film this (camera angle, movement, location)","cta":"the last thing to say to drive engagement","hashtags":["tag1","tag2","tag3","tag4","tag5"]}';
+    } else if(fmt===3){
+      prompt='Based on this content:\n'+extractedContent+'\n\nCreate a Twitter/X thread of 5 tweets for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","tweets":["tweet 1","tweet 2","tweet 3","tweet 4","tweet 5"]}';
+    } else {
+      prompt='Based on this content:\n'+extractedContent+'\n\nCreate a LinkedIn post for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","post":"professional LinkedIn post 3-4 sentences","hashtags":["tag1","tag2","tag3"]}';
+    }
+    const raw=await ai(prompt,lang);
+    const jm=raw.match(/{[\s\S]*}/);if(!jm)throw new Error("Bad response");
+    return JSON.parse(jm[0]);
+  }
 
   async function gen(){
     if(!link||loading)return;
@@ -967,34 +987,40 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
     }
     setLoading(true);setResult(null);setErr(null);setGenErr(null);setPostChoice(null);setSentCal(false);
     try{
-      // First extract content from the link
-      const extractRes = await fetch("/api/youtube", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({url:link})
-      });
-      const extractData = await extractRes.json();
-      if(!extractRes.ok||extractData.error) throw new Error(extractData.error||"Could not read this link");
-      const extractedContent = extractData.content;
-
-      const fmtNames=["Instagram Post","Reels Script","TikTok Script","Twitter/X Thread","LinkedIn Post"];
-      const fmt=fmtNames[format];
-      let prompt="";
-      if(format===0){
-        prompt='Based on this content:\n'+extractedContent+'\n\nCreate an Instagram post for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary of source content","caption":"ready-to-post Instagram caption 2-3 sentences","hashtags":["tag1","tag2","tag3","tag4","tag5"],"photo_instruction":"one sentence telling what photo to take to accompany this post"}';
-      } else if(format===1||format===2){
-        const platform=format===1?"Reels":"TikTok";
-        prompt='Based on this content:\n'+extractedContent+'\n\nCreate a '+platform+' video script for a local business owner inspired by this content. The script does not need to be about the same business or topic in the source — adapt the lesson, story or insight to a generic local business context.\nYou MUST fill in every field below with real content, never leave any field empty.\nReturn ONLY valid JSON in this exact shape: {"summary":"2 sentence summary of the source content","hook":"the very first sentence to say on camera — attention-grabbing, under 15 words","script_points":["point 1 to cover","point 2 to cover","point 3 to cover"],"filming_tip":"one sentence on how to film this (camera angle, movement, location)","cta":"the last thing to say to drive engagement","hashtags":["tag1","tag2","tag3","tag4","tag5"]}';
-      } else if(format===3){
-        prompt='Based on this content:\n'+extractedContent+'\n\nCreate a Twitter/X thread of 5 tweets for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","tweets":["tweet 1","tweet 2","tweet 3","tweet 4","tweet 5"]}';
+      let extractedContent;
+      if(cachedLinkRef.current===link && cachedContentRef.current){
+        extractedContent = cachedContentRef.current;
       } else {
-        prompt='Based on this content:\n'+extractedContent+'\n\nCreate a LinkedIn post for a local business owner inspired by this content.\nReturn ONLY valid JSON: {"summary":"2 sentence summary","post":"professional LinkedIn post 3-4 sentences","hashtags":["tag1","tag2","tag3"]}';
+        const extractRes = await fetch("/api/youtube", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({url:link})
+        });
+        const extractData = await extractRes.json();
+        if(!extractRes.ok||extractData.error) throw new Error(extractData.error||"Could not read this link");
+        extractedContent = extractData.content;
+        cachedContentRef.current = extractedContent;
+        cachedLinkRef.current = link;
       }
-      const raw=await ai(prompt,lang);
-      const jm=raw.match(/{[\s\S]*}/);if(!jm)throw new Error("Bad response");
-      setResult(JSON.parse(jm[0]));
+      const parsed = await generateForFormat(format, extractedContent);
+      setResult(parsed);
     }catch(e){setErr(e.message||"Unknown error");}
     setLoading(false);
+  }
+
+  async function switchFormat(newFormat){
+    setFormat(newFormat);
+    setPostChoice(null);
+    setSentCal(false);
+    // If we already have extracted content for this link, regenerate automatically
+    if(cachedLinkRef.current===link && cachedContentRef.current && result){
+      setLoading(true);setErr(null);
+      try{
+        const parsed = await generateForFormat(newFormat, cachedContentRef.current);
+        setResult(parsed);
+      }catch(e){setErr(e.message||"Unknown error");}
+      setLoading(false);
+    }
   }
 
   function getDownloadText(){
@@ -1048,11 +1074,14 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
     ),
     React.createElement('div',{style:{marginBottom:20}},
       React.createElement(Lbl,{t:t.inspFormat}),
+      result&&React.createElement('div',{style:{fontSize:12,color:"#059669",fontWeight:600,marginBottom:8}},
+        {en:"✓ Tap another format above to convert instantly — no need to regenerate",pt:"✓ Toque em outro formato acima para converter na hora — não precisa gerar de novo",es:"✓ Toca otro formato arriba para convertir al instante — no hace falta regenerar"}[lang]
+      ),
       React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:8}},
-        t.inspFormats.map((f,i)=>React.createElement('button',{key:i,onClick:()=>setFormat(i),style:{padding:"12px 16px",borderRadius:12,border:"2px solid "+(format===i?"#0f172a":"#e2e8f0"),background:format===i?"#0f172a":"#fff",color:format===i?"#fff":"#475569",fontWeight:700,fontSize:14,cursor:"pointer",textAlign:"left"}},f))
+        t.inspFormats.map((f,i)=>React.createElement('button',{key:i,onClick:()=>switchFormat(i),style:{padding:"12px 16px",borderRadius:12,border:"2px solid "+(format===i?"#0f172a":"#e2e8f0"),background:format===i?"#0f172a":"#fff",color:format===i?"#fff":"#475569",fontWeight:700,fontSize:14,cursor:"pointer",textAlign:"left"}},f))
       )
     ),
-    React.createElement(Btn,{text:loading?"⏳ "+t.inspLoading:"✨ "+t.inspBtn,onClick:gen,disabled:loading||!link}),
+    !result&&React.createElement(Btn,{text:loading?"⏳ "+t.inspLoading:"✨ "+t.inspBtn,onClick:gen,disabled:loading||!link}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
     err&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.inspError+" ("+err+")"),
     result&&React.createElement('div',{style:{marginTop:24}},
@@ -1083,19 +1112,19 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
       // Reels/TikTok script
       (format===1||format===2)&&result.hook&&React.createElement('div',null,
         React.createElement('div',{style:{marginBottom:12}},
-          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"🎯 Hook — first thing you say:"),
+          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},{en:"🎯 Hook — first thing you say:",pt:"🎯 Gancho — primeira coisa que você fala:",es:"🎯 Gancho — lo primero que dices:"}[lang]),
           React.createElement('div',{style:{background:"#ede9fe",borderRadius:10,padding:"12px 16px",fontSize:15,fontWeight:700,color:"#0f172a",lineHeight:1.5}},'"'+result.hook+'"')
         ),
         result.script_points&&result.script_points.length>0&&React.createElement('div',{style:{marginBottom:12}},
-          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"🎬 Script points:"),
+          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},{en:"🎬 Script points:",pt:"🎬 Roteiro:",es:"🎬 Guión:"}[lang]),
           result.script_points.map((p,i)=>React.createElement('div',{key:i,style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:8,padding:"10px 14px",marginBottom:6,fontSize:13,color:"#334155",lineHeight:1.5}},React.createElement('span',{style:{fontWeight:700,color:"#7c3aed"}},(i+1)+". "),p))
         ),
         result.filming_tip&&React.createElement('div',{style:{marginBottom:12}},
-          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"📱 How to film:"),
+          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#0f172a",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},{en:"📱 How to film:",pt:"📱 Como filmar:",es:"📱 Cómo filmar:"}[lang]),
           React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:8,padding:"10px 14px",fontSize:13,color:"#334155"}},result.filming_tip)
         ),
         result.cta&&React.createElement('div',{style:{marginBottom:12}},
-          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},"✅ CTA — say at the end:"),
+          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:6}},{en:"✅ CTA — say at the end:",pt:"✅ CTA — fale no final:",es:"✅ CTA — di al final:"}[lang]),
           React.createElement('div',{style:{background:"#f0fdf4",border:"2px solid #bbf7d0",borderRadius:8,padding:"10px 14px",fontSize:13,color:"#065f46",fontWeight:600}},'"'+result.cta+'"')
         ),
         result.hashtags&&React.createElement('div',{style:{display:"flex",flexWrap:"wrap",gap:6}},result.hashtags.map((h,i)=>React.createElement('span',{key:i,style:{fontSize:12,color:"#64748b",fontWeight:600}},"#"+h)))
@@ -1119,7 +1148,8 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
       // Action buttons
       React.createElement('div',{style:{display:"flex",gap:8,marginTop:16,flexWrap:"wrap"}},
         React.createElement('button',{onClick:sendToCalendar,style:{padding:"10px 18px",background:sentCal?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer"}},sentCal?t.inspSentCal:"📅 "+t.inspSendCal),
-        React.createElement('button',{onClick:download,style:{padding:"10px 18px",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",color:"#0f172a"}},"⬇ "+t.inspDownload)
+        React.createElement('button',{onClick:download,style:{padding:"10px 18px",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",color:"#0f172a"}},"⬇ "+t.inspDownload),
+        React.createElement('button',{onClick:()=>{setResult(null);setLink("");cachedLinkRef.current=null;cachedContentRef.current=null;},style:{padding:"10px 18px",background:"#fff",border:"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",color:"#64748b"}},{en:"🔄 New link",pt:"🔄 Novo link",es:"🔄 Nuevo enlace"}[lang])
       )
     )
   );
