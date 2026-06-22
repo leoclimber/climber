@@ -86,6 +86,9 @@ async function setUserPlanByEmail(email, plan) {
       body: JSON.stringify({
         plan,
         posts_used: 0,
+        calendar_used: 0,
+        promo_used: 0,
+        inspiration_used: 0,
         cycle_start: new Date().toISOString()
       })
     });
@@ -98,6 +101,9 @@ async function setUserPlanByEmail(email, plan) {
     body: JSON.stringify({
       email: normalizedEmail,
       posts_used: 0,
+      calendar_used: 0,
+      promo_used: 0,
+      inspiration_used: 0,
       plan,
       cycle_start: new Date().toISOString()
     })
@@ -109,9 +115,18 @@ async function downgradeUserToFreeByEmail(email) {
   const normalizedEmail = (email || "").toLowerCase().trim();
   if (!normalizedEmail) return { ok: false, error: "Missing email" };
 
+  // Reset usage counters on downgrade so the returning free user can still
+  // use their free trial allowances (otherwise leftover high counts would
+  // lock them out of the 3 free posts).
   const updated = await sb("users?email=eq." + encodeURIComponent(normalizedEmail), {
     method: "PATCH",
-    body: JSON.stringify({ plan: "free" })
+    body: JSON.stringify({
+      plan: "free",
+      posts_used: 0,
+      calendar_used: 0,
+      promo_used: 0,
+      inspiration_used: 0
+    })
   });
   return { ok: updated.ok, data: updated.data };
 }
