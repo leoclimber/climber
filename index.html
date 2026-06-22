@@ -60,6 +60,11 @@ const T = {
     emailRequired:"Please enter a valid email to continue.",
     continueBtn:"Continue", limitReached:"Free limit reached.", planLimitReached:"You've reached your plan's monthly limit.", accessBlocked:"This account is blocked. Please contact support.",
     unlimitedPlan:"Unlimited posts on your plan",
+    usedThisMonth:"used this month",
+    genericError:"Couldn't generate right now. Please try again in a moment.",
+    linkError:"Couldn't read this link. Make sure it's a valid YouTube or article link.",
+    sameEmailTip:"💡 Always use the same email — it keeps your plan and all your saved content.",
+    useInCalendar:"📅 Use in Calendar",
     proRequired:"This feature is only available on the Pro plan.",
     proRequiredCta:"Upgrade to Pro →",
     // Calendar tab
@@ -151,6 +156,11 @@ const T = {
     emailRequired:"Digite um email válido para continuar.",
     continueBtn:"Continuar", limitReached:"Limite grátis atingido.", planLimitReached:"Você atingiu o limite mensal do seu plano.", accessBlocked:"Esta conta está bloqueada. Entre em contato com o suporte.",
     unlimitedPlan:"Posts ilimitados no seu plano",
+    usedThisMonth:"usados este mês",
+    genericError:"Não conseguimos gerar agora. Tenta de novo em instantes.",
+    linkError:"Não conseguimos ler esse link. Confere se é um link válido do YouTube ou de um artigo.",
+    sameEmailTip:"💡 Use sempre o mesmo email — é ele que guarda seu plano e todo o seu conteúdo salvo.",
+    useInCalendar:"📅 Usar no Calendário",
     proRequired:"Este recurso está disponível apenas no plano Pro.",
     proRequiredCta:"Assinar Pro →",
     calTitle:"Calendário de Conteúdo de 30 Dias",
@@ -237,6 +247,11 @@ const T = {
     emailRequired:"Ingresa un email válido para continuar.",
     continueBtn:"Continuar", limitReached:"Límite gratis alcanzado.", planLimitReached:"Has alcanzado el límite mensual de tu plan.", accessBlocked:"Esta cuenta está bloqueada. Contacta con soporte.",
     unlimitedPlan:"Posts ilimitados en tu plan",
+    usedThisMonth:"usados este mes",
+    genericError:"No pudimos generar ahora. Intenta de nuevo en un momento.",
+    linkError:"No pudimos leer este enlace. Verifica que sea un enlace válido de YouTube o de un artículo.",
+    sameEmailTip:"💡 Usa siempre el mismo email — guarda tu plan y todo tu contenido guardado.",
+    useInCalendar:"📅 Usar en Calendario",
     proRequired:"Esta función solo está disponible en el plan Pro.",
     proRequiredCta:"Obtener Pro →",
     calTitle:"Calendario de Contenido de 30 Días",
@@ -330,6 +345,16 @@ function F(){return{width:"100%",background:"#f8fafc",border:"2px solid #e2e8f0"
 function S(){return{...F(),appearance:"none",cursor:"pointer",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 12px center",paddingRight:36};}
 function Lbl({t}){return React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:7}},t);}
 function Btn({text,onClick,disabled,color}){return React.createElement('button',{onClick,disabled,style:{width:"100%",padding:15,background:disabled?"#e2e8f0":color||"#0f172a",color:disabled?"#94a3b8":"#fff",border:"none",borderRadius:14,fontWeight:800,fontSize:15,cursor:disabled?"not-allowed":"pointer",transition:"all .2s"}},text);}
+function CopyBtn({getText,lang,small}){
+  const[copied,setCopied]=React.useState(false);
+  function doCopy(){
+    const text=getText();if(!text)return;
+    navigator.clipboard.writeText(text);
+    setCopied(true);setTimeout(()=>setCopied(false),2000);
+  }
+  const label=copied?{en:"✓ Copied",pt:"✓ Copiado",es:"✓ Copiado"}[lang]:{en:"📋 Copy",pt:"📋 Copiar",es:"📋 Copiar"}[lang];
+  return React.createElement('button',{onClick:doCopy,style:{padding:small?"6px 12px":"10px 18px",background:copied?"#059669":"#f1f5f9",color:copied?"#fff":"#0f172a",border:copied?"none":"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",transition:"all .2s"}},label);
+}
 
 async function ai(prompt,lang){
   const ln={en:"English",pt:"Brazilian Portuguese",es:"Spanish"};
@@ -436,7 +461,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
         setImages([...urls]);
       }
       if(urls.length===0&&lastErr) setImgErr(lastErr);
-    }catch(e){setResult({caption:"Error: "+e.message,hashtags:[],tip:""});setLPost(false);}
+    }catch(e){setResult({caption:t.genericError,hashtags:[],tip:""});setLPost(false);}
     setLImg(false);
   }
 
@@ -488,13 +513,14 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
     ),
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
-      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
+      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
+      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.sameEmailTip)
     ),
     limit
       ?React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"18px 22px",textAlign:"center",cursor:"pointer"}},React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#f59e0b"}},t.upgrade))
       :React.createElement(Btn,{text:lPost?"⏳ "+t.loading:(email?"✦ "+t.btn:t.continueBtn),onClick:gen,disabled:lPost||!highlight||!highlightDetail}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
-    usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:t.unlimitedPlan),
+    usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:((usage.postsUsed||0)+"/"+(usage.featureLimit||100)+" "+t.usedThisMonth)),
     result&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{height:1,background:"#e2e8f0",marginBottom:20}}),
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}},
@@ -738,7 +764,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
       const parsedWeeks=JSON.parse(wm[0]);
       setWeeks(parsedWeeks);
       saveHistory(email,"calendar",biz?("📅 "+biz):"Calendário 30 dias",parsedWeeks);
-    }catch(e){setWeeks([]);setErr(e.message||"Unknown error");}
+    }catch(e){setWeeks([]);setErr(t.genericError);}
     setLoading(false);
   }
 
@@ -771,7 +797,8 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
       modalDay&&React.createElement(DayModal,{day:modalDay,onClose:()=>setModalDay(null),lang}),
       !email&&React.createElement('div',{style:{marginBottom:14}},
         React.createElement(Lbl,{t:t.emailLabel}),
-        React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
+        React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
+      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.sameEmailTip)
       ),
       React.createElement('div',{style:{marginBottom:20}},
         React.createElement('div',{style:{fontSize:13,fontWeight:700,color:"#64748b",marginBottom:8,textAlign:"center"}},t.calPreviewTitle),
@@ -822,6 +849,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
     ),
     React.createElement(Btn,{text:loading?"⏳ "+t.calLoading:"📅 "+t.calBtn,onClick:build,disabled:loading||!biz||!type}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
+    access&&access.plan==="pro"&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},(access.calendarUsed||0)+"/"+(access.featureLimit||15)+" "+t.usedThisMonth),
     weeks&&weeks.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.calError+(err?" ("+err+")":"")),
     weeks&&weeks.length>0&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}},
@@ -904,7 +932,7 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
       const parsedPromos=JSON.parse(pm[0]);
       setPromos(parsedPromos);
       saveHistory(email,"promo",occasion||custom||(biz?("💬 "+biz):"Legendas"),parsedPromos);
-    }catch(e){setPromos([]);setErr(e.message||"Unknown error");}
+    }catch(e){setPromos([]);setErr(t.genericError);}
     setLoading(false);
   }
 
@@ -915,7 +943,8 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
   return React.createElement('div',null,
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
-      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
+      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
+      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.sameEmailTip)
     ),
     React.createElement('div',{style:{marginBottom:14}},React.createElement(Lbl,{t:t.captionBiz}),React.createElement('input',{value:biz,onChange:e=>setBiz(e.target.value),placeholder:t.captionBizPh,style:F()})),
     React.createElement('div',{style:{marginBottom:20}},React.createElement(Lbl,{t:t.captionType}),React.createElement('input',{value:type,onChange:e=>setType(e.target.value),placeholder:t.captionTypePh,style:F()})),
@@ -934,6 +963,7 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
     ),
     React.createElement(Btn,{text:loading?"⏳ "+t.captionLoading:"💬 "+t.captionBtn,onClick:gen,disabled:loading||!biz||!type}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
+    access&&access.plan==="pro"&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},(access.promoUsed||0)+"/"+(access.featureLimit||60)+" "+t.usedThisMonth),
     !custom&&!occasion&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},{en:"Select an occasion above or describe what you want to promote",pt:"Selecione uma data acima ou descreva o que quer promover",es:"Selecciona una fecha o describe lo que quieres promocionar"}[lang]),
     promos&&promos.length===0&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.captionError+(err?" ("+err+")":"")),
     promos&&promos.length>0&&React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12,marginTop:24}},
@@ -1006,19 +1036,20 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
         setGenErr(regData.blocked?t.accessBlocked:(regData.reason==="pro_required"?t.proRequired:(regData.reason==="plan_limit"?t.planLimitReached:t.limitReached)));
         return;
       }
+      setAccess(regData);
       const extractRes = await fetch("/api/youtube", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({url:link})
       });
       const extractData = await extractRes.json();
-      if(!extractRes.ok||extractData.error) throw new Error(extractData.error||"Could not read this link");
+      if(!extractRes.ok||extractData.error) throw new Error("LINK_ERROR");
       const extractedContent = extractData.content;
 
       const all = await generateAllFormats(extractedContent);
       setAllResults(all);
       saveHistory(email,"inspiration",link,all);
-    }catch(e){setErr(e.message||"Unknown error");}
+    }catch(e){setErr(e.message==="LINK_ERROR"?t.linkError:t.genericError);}
     setLoading(false);
   }
 
@@ -1072,7 +1103,8 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
     ),
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
-      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
+      React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
+      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.sameEmailTip)
     ),
     React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.inspLink}),
@@ -1089,6 +1121,7 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
     ),
     !result&&React.createElement(Btn,{text:loading?"⏳ "+t.inspLoading:"✨ "+t.inspBtn,onClick:gen,disabled:loading||!link}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
+    !result&&access&&access.plan==="pro"&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},(access.inspirationUsed||0)+"/"+(access.featureLimit||40)+" "+t.usedThisMonth),
     err&&React.createElement('div',{style:{marginTop:16,padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.inspError+" ("+err+")"),
     result&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{height:1,background:"#e2e8f0",marginBottom:20}}),
@@ -1153,6 +1186,13 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
       ),
       // Action buttons
       React.createElement('div',{style:{display:"flex",gap:8,marginTop:16,flexWrap:"wrap"}},
+        React.createElement(CopyBtn,{lang,small:false,getText:()=>{
+          const c=result;if(!c)return "";
+          if(format===0)return (c.caption||"")+"\n\n"+(c.hashtags?c.hashtags.map(h=>"#"+h).join(" "):"")+(c.photo_instruction?"\n\n📸 "+c.photo_instruction:"");
+          if(format===1||format===2)return (c.hook?c.hook+"\n\n":"")+(c.script_points?c.script_points.join("\n"):"")+(c.filming_tip?"\n\n🎬 "+c.filming_tip:"")+(c.cta?"\n\n"+c.cta:"")+(c.hashtags?"\n\n"+c.hashtags.map(h=>"#"+h).join(" "):"");
+          if(format===3)return c.tweets?c.tweets.join("\n\n"):"";
+          return (c.post||"")+(c.hashtags?"\n\n"+c.hashtags.map(h=>"#"+h).join(" "):"");
+        }}),
         React.createElement('button',{onClick:sendToCalendar,style:{padding:"10px 18px",background:sentCal?"#059669":"#0f172a",color:"#fff",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer"}},sentCal?t.inspSentCal:"📅 "+t.inspSendCal),
         React.createElement('button',{onClick:download,style:{padding:"10px 18px",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",color:"#0f172a"}},"⬇ "+t.inspDownload),
         React.createElement('button',{onClick:()=>{setAllResults(null);setLink("");},style:{padding:"10px 18px",background:"#fff",border:"2px solid #e2e8f0",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",color:"#64748b"}},{en:"🔄 New link",pt:"🔄 Novo link",es:"🔄 Nuevo enlace"}[lang])
@@ -1190,7 +1230,7 @@ function PricingTab({t,email}){
   );
 }
 
-function HistoryTab({t,lang,email,saveEmail,setTab}){
+function HistoryTab({t,lang,email,saveEmail,setTab,onSendToCalendar}){
   const[emailInput,setEmailInput]=React.useState("");
   const[items,setItems]=React.useState(null);
   const[loading,setLoading]=React.useState(false);
@@ -1222,6 +1262,8 @@ function HistoryTab({t,lang,email,saveEmail,setTab}){
   }
 
   async function del(id){
+    const msg={en:"Delete this item permanently?",pt:"Apagar este item permanentemente?",es:"¿Eliminar este elemento permanentemente?"}[lang];
+    if(!window.confirm(msg))return;
     try{
       await fetch("/api/history",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,email})});
       setItems(items.filter(it=>it.id!==id));
@@ -1235,7 +1277,7 @@ function HistoryTab({t,lang,email,saveEmail,setTab}){
     }catch(e){return "";}
   }
 
-  function downloadItem(item){
+  function itemToText(item){
     let text="";
     const c=item.content;
     if(item.feature==="create"){
@@ -1251,6 +1293,11 @@ function HistoryTab({t,lang,email,saveEmail,setTab}){
       if(c.twitter&&c.twitter.tweets)text+="TWITTER/X:\n"+c.twitter.tweets.join("\n\n")+"\n\n";
       if(c.linkedin)text+="LINKEDIN:\n"+(c.linkedin.post||"")+"\n"+(c.linkedin.hashtags?c.linkedin.hashtags.map(h=>"#"+h).join(" "):"");
     }
+    return text;
+  }
+
+  function downloadItem(item){
+    const text=itemToText(item);
     const blob=new Blob([text],{type:"text/plain"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");a.href=url;a.download="climber-"+item.feature+".txt";a.click();URL.revokeObjectURL(url);
@@ -1288,7 +1335,8 @@ function HistoryTab({t,lang,email,saveEmail,setTab}){
       ),
       React.createElement('div',{style:{marginBottom:14}},
         React.createElement(Lbl,{t:t.emailLabel}),
-        React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
+        React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
+      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.sameEmailTip)
       ),
       React.createElement(Btn,{text:{en:"View my history",pt:"Ver meu histórico",es:"Ver mi historial"}[lang],onClick:()=>{if(emailInput&&emailInput.includes("@"))saveEmail(emailInput.toLowerCase().trim());},disabled:!emailInput||!emailInput.includes("@")})
     );
@@ -1316,9 +1364,20 @@ function HistoryTab({t,lang,email,saveEmail,setTab}){
           ),
           React.createElement('div',{style:{display:"flex",gap:6,flexShrink:0}},
             React.createElement('button',{onClick:()=>setExpanded(expanded===item.id?null:item.id),style:{padding:"6px 10px",background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,fontSize:12,cursor:"pointer",color:"#475569",fontWeight:600}},expanded===item.id?"▲":"▼"),
+            React.createElement(CopyBtn,{lang,small:true,getText:()=>itemToText(item)}),
             React.createElement('button',{onClick:()=>downloadItem(item),style:{padding:"6px 10px",background:"#0f172a",border:"none",borderRadius:8,fontSize:12,cursor:"pointer",color:"#fff",fontWeight:600}},"⬇"),
             React.createElement('button',{onClick:()=>del(item.id),style:{padding:"6px 10px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8,fontSize:12,cursor:"pointer",color:"#dc2626",fontWeight:600}},"🗑")
           )
+        ),
+        item.feature!=="calendar"&&React.createElement('div',{style:{marginTop:10}},
+          React.createElement('button',{onClick:()=>{
+            const c=item.content;
+            let entry="";
+            if(item.feature==="create")entry=c.caption||"";
+            else if(item.feature==="promo")entry=(Array.isArray(c)&&c[0]?c[0].caption:"")||"";
+            else if(item.feature==="inspiration")entry=(c.instagram&&c.instagram.caption)||(c.reels&&c.reels.hook)||"";
+            if(entry&&onSendToCalendar){onSendToCalendar(entry);setTab(3);window.scrollTo({top:0,behavior:"smooth"});}
+          },style:{padding:"6px 14px",background:"#ede9fe",border:"none",borderRadius:8,fontSize:12,cursor:"pointer",color:"#7c3aed",fontWeight:700}},t.useInCalendar)
         ),
         expanded===item.id&&React.createElement('div',{style:{marginTop:12,paddingTop:12,borderTop:"1px solid #e2e8f0"}},renderItemContent(item))
       ))
@@ -1375,6 +1434,7 @@ function App(){
         React.createElement('span',{style:{fontWeight:900,fontSize:18,color:"#0f172a"}},"Climber")
       ),
       React.createElement('div',{style:{display:"flex",alignItems:"center",gap:6}},
+        email&&React.createElement('span',{title:email,style:{fontSize:12,color:"#64748b",fontWeight:600,maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"inline-block"}},"👤 "+email),
         ["en","pt","es"].map(l=>React.createElement('button',{key:l,onClick:()=>setLang(l),style:{padding:"5px 10px",borderRadius:8,border:"1.5px solid "+(lang===l?"#0f172a":"#e2e8f0"),background:lang===l?"#0f172a":"transparent",color:lang===l?"#fff":"#64748b",fontWeight:700,fontSize:12,cursor:"pointer"}},T[l].flag+" "+T[l].code)),
         React.createElement('button',{onClick:toApp,style:{padding:"9px 18px",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:4}},t.startBtn)
       )
@@ -1402,7 +1462,7 @@ function App(){
           React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(InspirationTab,{t,lang,email,saveEmail,setTab,onSendToCalendar:(entry)=>setInspirationEntry(entry),onSendToCreate:(prompt)=>setCreatePrompt(prompt)})),
           React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(CalendarTab,{t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEntry})),
           React.createElement('div',{style:{display:tab===4?"block":"none"}},React.createElement(PricingTab,{t,email})),
-          React.createElement('div',{style:{display:tab===5?"block":"none"}},React.createElement(HistoryTab,{t,lang,email,saveEmail,setTab}))
+          React.createElement('div',{style:{display:tab===5?"block":"none"}},React.createElement(HistoryTab,{t,lang,email,saveEmail,setTab,onSendToCalendar:(entry)=>setInspirationEntry(entry)}))
         )
       )
     ),
