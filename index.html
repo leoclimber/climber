@@ -965,7 +965,7 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
 
   React.useEffect(()=>{
     if(!email){setAccess(null);return;}
-    fetch("/api/user?email="+encodeURIComponent(email)+"&feature=calendar")
+    fetch("/api/user?email="+encodeURIComponent(email)+"&feature=inspiration")
       .then(r=>r.json()).then(d=>{if(!d.error)setAccess(d);}).catch(()=>{});
   },[email]);
 
@@ -999,7 +999,7 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
     setLoading(true);setAllResults(null);setErr(null);setGenErr(null);setPostChoice(null);setSentCal(false);
     try{
       // Check usage limit once for this entire generation
-      const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,feature:"calendar"})});
+      const reg=await fetch("/api/user",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,feature:"inspiration"})});
       const regData=await reg.json();
       if(!reg.ok||!regData.allowed){
         setLoading(false);
