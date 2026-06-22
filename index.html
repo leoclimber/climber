@@ -32,7 +32,7 @@ const T = {
     sub:"Generate captions, hashtags & AI images for your business in seconds.",
     cta:"Generate Free Post →", note:"No credit card · 3 free posts",
     startBtn:"Start →",
-    tabs:["✦ Create","💬 Captions","✨ Inspiration","📅 Calendar","📋 Plans"],
+    tabs:["✦ Create","💬 Captions","✨ Inspiration","📅 Calendar","📋 Plans","🕘 History"],
     biz:"Business name", bizPh:"e.g. The Crafty Pub",
     type:"Business type", typePh:"e.g. Pub, Salon, Café",
     desc:"Describe your post", descPh:"Optional but recommended — e.g. Promote our new Margherita pizza with 20% off tonight. We use fresh local ingredients and it pairs great with our house wine.",
@@ -124,7 +124,7 @@ const T = {
     sub:"Gere legendas, hashtags e imagens de IA para o seu negócio em segundos.",
     cta:"Gerar Post Grátis →", note:"Sem cartão · 3 posts grátis",
     startBtn:"Começar →",
-    tabs:["✦ Criar","💬 Legendas","✨ Inspiração","📅 Calendário","📋 Planos"],
+    tabs:["✦ Criar","💬 Legendas","✨ Inspiração","📅 Calendário","📋 Planos","🕘 Histórico"],
     biz:"Nome do negócio", bizPh:"ex: Salão da Gabi",
     type:"Tipo de negócio", typePh:"ex: Salão, Academia, Restaurante",
     desc:"Descreva seu post", descPh:"Opcional mas recomendado — ex: Quero promover nossa pizza Margherita com 20% de desconto hoje à noite.",
@@ -210,7 +210,7 @@ const T = {
     sub:"Genera captions, hashtags e imágenes de IA para tu negocio en segundos.",
     cta:"Generar Post Gratis →", note:"Sin tarjeta · 3 posts gratis",
     startBtn:"Empezar →",
-    tabs:["✦ Crear","💬 Captions","✨ Inspiración","📅 Calendario","📋 Planes"],
+    tabs:["✦ Crear","💬 Captions","✨ Inspiración","📅 Calendario","📋 Planes","🕘 Historial"],
     biz:"Nombre del negocio", bizPh:"ej: Salón de María",
     type:"Tipo de negocio", typePh:"ej: Salón, Gym, Restaurante",
     desc:"Describe tu post", descPh:"Opcional pero recomendado — ej: Quiero promocionar nuestra pizza Margarita con 20% de descuento esta noche.",
@@ -348,6 +348,12 @@ async function img(prompt){
     return {url:null,error:e.message||"Unknown error"};
   }
 }
+async function saveHistory(email,feature,title,content){
+  if(!email) return;
+  try {
+    await fetch("/api/history",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,feature,title,content})});
+  } catch(e){ /* silent — history saving should never break the main flow */ }
+}
 
 function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}){
   const[highlight,setHighlight]=React.useState("");
@@ -419,6 +425,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
       const raw=await ai(buildPostPrompt(),lang);
       const jsonMatch=raw.match(/{[\s\S]*}/);if(!jsonMatch)throw new Error("Bad response");const p=JSON.parse(jsonMatch[0]);
       setResult(p);setLPost(false);setLImg(true);
+      saveHistory(email,"create",p.caption?p.caption.substring(0,60):"Post",p);
       const imgPrompt=buildImagePrompt();
       const styles=["bright natural light, warm lifestyle photography","bold vibrant colors, modern graphic design","moody atmospheric, editorial photography style"];
       const urls=[];let lastErr=null;
@@ -727,7 +734,10 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
       const promoLine=promo?"\nThis month's special: "+promo:"";
       const inspLine=inspNote?"\nExtra context from inspiration: "+inspNote:"";
       const raw=await ai('Business:"'+biz+'",Type:"'+type+'"'+promoLine+inspLine+'\nCreate a 30-day social media content calendar using '+fmt+'.\nFor video days include hook, script_points (array of 3 short points), filming_tip, cta.\nReturn ONLY valid JSON array of 4 weeks:\n[{"week":1,"days":[{"day":1,"platform":"Instagram","type":"post","goal":"2-4 words","caption":"1-2 sentences","emoji":"1 emoji","hook":"","script_points":[],"filming_tip":"","cta":""},...]},...]',lang);
-      const wm=raw.match(/\[[\s\S]*\]/);if(!wm)throw new Error("Bad cal response");setWeeks(JSON.parse(wm[0]));
+      const wm=raw.match(/\[[\s\S]*\]/);if(!wm)throw new Error("Bad cal response");
+      const parsedWeeks=JSON.parse(wm[0]);
+      setWeeks(parsedWeeks);
+      saveHistory(email,"calendar",biz?("📅 "+biz):"Calendário 30 dias",parsedWeeks);
     }catch(e){setWeeks([]);setErr(e.message||"Unknown error");}
     setLoading(false);
   }
@@ -890,7 +900,10 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
         prompt='Business:"'+biz+'",Type:"'+type+'"\nCreate 4 general social media captions to promote this business.\nReturn ONLY valid JSON: [{"title":"post title","emoji":"1 emoji","caption":"2-3 sentence post","hashtags":["tag1","tag2","tag3","tag4"]}]';
       }
       const raw=await ai(prompt,lang);
-      const pm=raw.match(/\[[\s\S]*\]/);if(!pm)throw new Error("Bad response");setPromos(JSON.parse(pm[0]));
+      const pm=raw.match(/\[[\s\S]*\]/);if(!pm)throw new Error("Bad response");
+      const parsedPromos=JSON.parse(pm[0]);
+      setPromos(parsedPromos);
+      saveHistory(email,"promo",occasion||custom||(biz?("💬 "+biz):"Legendas"),parsedPromos);
     }catch(e){setPromos([]);setErr(e.message||"Unknown error");}
     setLoading(false);
   }
@@ -1004,6 +1017,7 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
 
       const all = await generateAllFormats(extractedContent);
       setAllResults(all);
+      saveHistory(email,"inspiration",link,all);
     }catch(e){setErr(e.message||"Unknown error");}
     setLoading(false);
   }
@@ -1176,6 +1190,142 @@ function PricingTab({t,email}){
   );
 }
 
+function HistoryTab({t,lang,email,saveEmail,setTab}){
+  const[emailInput,setEmailInput]=React.useState("");
+  const[items,setItems]=React.useState(null);
+  const[loading,setLoading]=React.useState(false);
+  const[err,setErr]=React.useState(null);
+  const[expanded,setExpanded]=React.useState(null);
+
+  const featureLabels={
+    create:{en:"✦ Post",pt:"✦ Post",es:"✦ Post"},
+    promo:{en:"💬 Captions",pt:"💬 Legendas",es:"💬 Captions"},
+    calendar:{en:"📅 Calendar",pt:"📅 Calendário",es:"📅 Calendario"},
+    inspiration:{en:"✨ Inspiration",pt:"✨ Inspiração",es:"✨ Inspiración"}
+  };
+
+  React.useEffect(()=>{
+    if(!email)return;
+    loadHistory();
+  },[email]);
+
+  async function loadHistory(){
+    if(!email)return;
+    setLoading(true);setErr(null);
+    try{
+      const r=await fetch("/api/history?email="+encodeURIComponent(email));
+      const d=await r.json();
+      if(d.error)throw new Error(d.error);
+      setItems(d.items||[]);
+    }catch(e){setErr(e.message||"Error");}
+    setLoading(false);
+  }
+
+  async function del(id){
+    try{
+      await fetch("/api/history",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,email})});
+      setItems(items.filter(it=>it.id!==id));
+    }catch(e){}
+  }
+
+  function fmtDate(iso){
+    try{
+      const d=new Date(iso);
+      return d.toLocaleDateString(lang==="pt"?"pt-BR":lang==="es"?"es-ES":"en-US",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    }catch(e){return "";}
+  }
+
+  function downloadItem(item){
+    let text="";
+    const c=item.content;
+    if(item.feature==="create"){
+      text=(c.caption||"")+"\n\n"+(c.hashtags?c.hashtags.map(h=>"#"+h).join(" "):"")+(c.tip?"\n\n"+c.tip:"");
+    } else if(item.feature==="promo"){
+      text=(Array.isArray(c)?c:[]).map(p=>(p.title||"")+"\n"+(p.caption||"")+"\n"+(p.hashtags?p.hashtags.map(h=>"#"+h).join(" "):"")).join("\n\n---\n\n");
+    } else if(item.feature==="calendar"){
+      text=(Array.isArray(c)?c:[]).flatMap(w=>["=== "+(lang==="pt"?"SEMANA":lang==="es"?"SEMANA":"WEEK")+" "+w.week+" ==="].concat((w.days||[]).map(d=>"Day "+d.day+" | "+d.platform+" | "+(d.goal||"")+"\n"+(d.caption||"")+(d.hook?"\nHook: "+d.hook:"")))).join("\n\n");
+    } else if(item.feature==="inspiration"){
+      if(c.instagram)text+="INSTAGRAM:\n"+(c.instagram.caption||"")+"\n"+(c.instagram.hashtags?c.instagram.hashtags.map(h=>"#"+h).join(" "):"")+"\n\n";
+      if(c.reels)text+="REELS:\nHook: "+(c.reels.hook||"")+"\n"+(c.reels.script_points?c.reels.script_points.join("\n"):"")+"\nCTA: "+(c.reels.cta||"")+"\n\n";
+      if(c.tiktok)text+="TIKTOK:\nHook: "+(c.tiktok.hook||"")+"\n"+(c.tiktok.script_points?c.tiktok.script_points.join("\n"):"")+"\nCTA: "+(c.tiktok.cta||"")+"\n\n";
+      if(c.twitter&&c.twitter.tweets)text+="TWITTER/X:\n"+c.twitter.tweets.join("\n\n")+"\n\n";
+      if(c.linkedin)text+="LINKEDIN:\n"+(c.linkedin.post||"")+"\n"+(c.linkedin.hashtags?c.linkedin.hashtags.map(h=>"#"+h).join(" "):"");
+    }
+    const blob=new Blob([text],{type:"text/plain"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download="climber-"+item.feature+".txt";a.click();URL.revokeObjectURL(url);
+  }
+
+  function renderItemContent(item){
+    const c=item.content;
+    if(item.feature==="create"){
+      return React.createElement('div',{style:{fontSize:13,color:"#334155",lineHeight:1.6}},
+        React.createElement('div',{style:{whiteSpace:"pre-wrap",marginBottom:8}},c.caption||""),
+        c.hashtags&&React.createElement('div',{style:{color:"#64748b",fontSize:12}},c.hashtags.map(h=>"#"+h).join(" "))
+      );
+    } else if(item.feature==="promo"){
+      return React.createElement('div',null,(Array.isArray(c)?c:[]).map((p,i)=>React.createElement('div',{key:i,style:{background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,padding:"10px 12px",marginBottom:8,fontSize:13,color:"#334155"}},
+        React.createElement('div',{style:{fontWeight:700,marginBottom:4}},(p.emoji||"")+" "+(p.title||"")),
+        React.createElement('div',{style:{whiteSpace:"pre-wrap",lineHeight:1.5}},p.caption||"")
+      )));
+    } else if(item.feature==="calendar"){
+      const totalDays=(Array.isArray(c)?c:[]).reduce((acc,w)=>acc+((w.days||[]).length),0);
+      return React.createElement('div',{style:{fontSize:13,color:"#64748b"}},
+        (lang==="pt"?"Calendário com ":lang==="es"?"Calendario con ":"Calendar with ")+totalDays+(lang==="pt"?" dias de conteúdo. Baixe para ver tudo.":lang==="es"?" días de contenido. Descarga para ver todo.":" days of content. Download to see all.")
+      );
+    } else if(item.feature==="inspiration"){
+      return React.createElement('div',{style:{fontSize:13,color:"#64748b"}},
+        (lang==="pt"?"5 formatos gerados (Instagram, Reels, TikTok, Twitter, LinkedIn). Baixe para ver tudo.":lang==="es"?"5 formatos generados. Descarga para ver todo.":"5 formats generated. Download to see all.")
+      );
+    }
+    return null;
+  }
+
+  if(!email){
+    return React.createElement('div',null,
+      React.createElement('div',{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:12,padding:"14px 16px",marginBottom:16,fontSize:14,color:"#0c4a6e"}},
+        {en:"Enter your email to see everything you've generated before.",pt:"Digite seu email para ver tudo que você já gerou antes.",es:"Ingresa tu email para ver todo lo que has generado antes."}[lang]
+      ),
+      React.createElement('div',{style:{marginBottom:14}},
+        React.createElement(Lbl,{t:t.emailLabel}),
+        React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()})
+      ),
+      React.createElement(Btn,{text:{en:"View my history",pt:"Ver meu histórico",es:"Ver mi historial"}[lang],onClick:()=>{if(emailInput&&emailInput.includes("@"))saveEmail(emailInput.toLowerCase().trim());},disabled:!emailInput||!emailInput.includes("@")})
+    );
+  }
+
+  return React.createElement('div',null,
+    React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
+      React.createElement('div',{style:{fontSize:13,color:"#64748b"}},React.createElement('span',{style:{fontWeight:700,color:"#0f172a"}},email)),
+      React.createElement('button',{onClick:loadHistory,style:{padding:"6px 12px",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer",color:"#475569"}},{en:"🔄 Refresh",pt:"🔄 Atualizar",es:"🔄 Actualizar"}[lang])
+    ),
+    loading&&React.createElement('div',{style:{textAlign:"center",padding:40,color:"#94a3b8"}},{en:"Loading...",pt:"Carregando...",es:"Cargando..."}[lang]),
+    err&&React.createElement('div',{style:{textAlign:"center",padding:20,color:"#dc2626",fontSize:13}},err),
+    !loading&&items&&items.length===0&&React.createElement('div',{style:{textAlign:"center",padding:40,color:"#94a3b8",fontSize:14}},
+      {en:"Nothing generated yet. Create something and it'll show up here!",pt:"Nada gerado ainda. Crie algo e vai aparecer aqui!",es:"Nada generado todavía. ¡Crea algo y aparecerá aquí!"}[lang]
+    ),
+    !loading&&items&&items.length>0&&React.createElement('div',{style:{display:"flex",flexDirection:"column",gap:10}},
+      items.map(item=>React.createElement('div',{key:item.id,style:{background:"#fff",border:"2px solid #e2e8f0",borderRadius:14,padding:"14px 16px"}},
+        React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+          React.createElement('div',{style:{flex:1,minWidth:0}},
+            React.createElement('div',{style:{display:"flex",alignItems:"center",gap:8,marginBottom:4}},
+              React.createElement('span',{style:{fontSize:11,fontWeight:700,color:"#7c3aed",background:"#ede9fe",borderRadius:6,padding:"2px 8px"}},(featureLabels[item.feature]||{})[lang]||item.feature),
+              React.createElement('span',{style:{fontSize:11,color:"#94a3b8"}},fmtDate(item.created_at))
+            ),
+            React.createElement('div',{style:{fontSize:14,fontWeight:600,color:"#0f172a",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},item.title||"—")
+          ),
+          React.createElement('div',{style:{display:"flex",gap:6,flexShrink:0}},
+            React.createElement('button',{onClick:()=>setExpanded(expanded===item.id?null:item.id),style:{padding:"6px 10px",background:"#f8fafc",border:"1px solid #e2e8f0",borderRadius:8,fontSize:12,cursor:"pointer",color:"#475569",fontWeight:600}},expanded===item.id?"▲":"▼"),
+            React.createElement('button',{onClick:()=>downloadItem(item),style:{padding:"6px 10px",background:"#0f172a",border:"none",borderRadius:8,fontSize:12,cursor:"pointer",color:"#fff",fontWeight:600}},"⬇"),
+            React.createElement('button',{onClick:()=>del(item.id),style:{padding:"6px 10px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8,fontSize:12,cursor:"pointer",color:"#dc2626",fontWeight:600}},"🗑")
+          )
+        ),
+        expanded===item.id&&React.createElement('div',{style:{marginTop:12,paddingTop:12,borderTop:"1px solid #e2e8f0"}},renderItemContent(item))
+      ))
+    )
+  );
+}
+
 function App(){
   const[lang,setLang]=React.useState("en");
   const[tab,setTab]=React.useState(0);
@@ -1251,7 +1401,8 @@ function App(){
           React.createElement('div',{style:{display:tab===1?"block":"none"}},React.createElement(CaptionsTab,{t,lang,email,usage,setUsage,saveEmail,setTab})),
           React.createElement('div',{style:{display:tab===2?"block":"none"}},React.createElement(InspirationTab,{t,lang,email,saveEmail,setTab,onSendToCalendar:(entry)=>setInspirationEntry(entry),onSendToCreate:(prompt)=>setCreatePrompt(prompt)})),
           React.createElement('div',{style:{display:tab===3?"block":"none"}},React.createElement(CalendarTab,{t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEntry})),
-          React.createElement('div',{style:{display:tab===4?"block":"none"}},React.createElement(PricingTab,{t,email}))
+          React.createElement('div',{style:{display:tab===4?"block":"none"}},React.createElement(PricingTab,{t,email})),
+          React.createElement('div',{style:{display:tab===5?"block":"none"}},React.createElement(HistoryTab,{t,lang,email,saveEmail,setTab}))
         )
       )
     ),
