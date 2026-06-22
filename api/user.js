@@ -9,15 +9,15 @@ const FREE_LIMITS = { create: 3, calendar: 1, promo: 1 };
 // no access to calendar/promo at all (see PRO_ONLY_FEATURES below).
 const PLAN_LIMITS = {
   starter: { create: 50 },
-  pro: { create: 300, calendar: 300, promo: 300 }
+  pro: { create: 100, calendar: 15, promo: 60, inspiration: 40 }
 };
 
 // Features that Starter cannot access under any circumstance (Free can
 // still demo them once each; Pro has full access).
-const PRO_ONLY_FEATURES = ["calendar", "promo"];
+const PRO_ONLY_FEATURES = ["calendar", "promo", "inspiration"];
 
 // Maps a feature name to the DB column that tracks its usage count.
-const FEATURE_COLUMNS = { create: "posts_used", calendar: "calendar_used", promo: "promo_used" };
+const FEATURE_COLUMNS = { create: "posts_used", calendar: "calendar_used", promo: "promo_used", inspiration: "inspiration_used" };
 
 async function sb(path, options = {}) {
   const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
@@ -43,7 +43,7 @@ async function getOrCreateUser(email) {
   }
   const created = await sb("users", {
     method: "POST",
-    body: JSON.stringify({ email, posts_used: 0, calendar_used: 0, promo_used: 0, plan: "free" })
+    body: JSON.stringify({ email, posts_used: 0, calendar_used: 0, promo_used: 0, inspiration_used: 0, plan: "free" })
   });
   if (created.ok && created.data && created.data.length > 0) {
     return created.data[0];
@@ -63,7 +63,7 @@ async function applyMonthlyResetIfNeeded(user) {
   if (!cycleStart || (now.getTime() - cycleStart.getTime()) >= MS_30_DAYS) {
     const updated = await sb("users?email=eq." + encodeURIComponent(user.email), {
       method: "PATCH",
-      body: JSON.stringify({ posts_used: 0, calendar_used: 0, promo_used: 0, cycle_start: now.toISOString() })
+      body: JSON.stringify({ posts_used: 0, calendar_used: 0, promo_used: 0, inspiration_used: 0, cycle_start: now.toISOString() })
     });
     if (updated.ok && updated.data && updated.data.length > 0) {
       return updated.data[0];
@@ -109,7 +109,7 @@ function checkFeatureAccess(user, feature) {
   }
 
   if (isStarter && isProOnlyFeature) {
-    // Starter never gets calendar/promo, regardless of usage count.
+    // Starter never gets calendar/promo/inspiration, regardless of usage count.
     return { allowed: false, reason: "pro_required" };
   }
 
@@ -152,6 +152,7 @@ export default async function handler(req, res) {
         postsUsed: user.posts_used,
         calendarUsed: user.calendar_used,
         promoUsed: user.promo_used,
+        inspirationUsed: user.inspiration_used,
         plan: user.plan,
         featureLimit: limit,
         blocked: !!user.blocked,
@@ -185,6 +186,7 @@ export default async function handler(req, res) {
           postsUsed: user.posts_used,
           calendarUsed: user.calendar_used,
           promoUsed: user.promo_used,
+          inspirationUsed: user.inspiration_used,
           plan: user.plan
         });
       }
@@ -207,6 +209,7 @@ export default async function handler(req, res) {
         postsUsed: updatedUser.posts_used,
         calendarUsed: updatedUser.calendar_used,
         promoUsed: updatedUser.promo_used,
+        inspirationUsed: updatedUser.inspiration_used,
         plan: user.plan,
         featureLimit: getLimitForFeature(user, feature),
         blocked: false,
