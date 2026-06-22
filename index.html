@@ -51,6 +51,8 @@ const T = {
     btn:"Generate Post + Images", loading:"Creating your post…",
     imgLoading:"Generating 3 AI images… (~30 sec)",
     imgError:"Couldn't generate images.",
+    downloadImg:"⬇ Download image",
+    retryImg:"🔄 Generate images again",
     caption:"Caption", hashtags:"Hashtags", tip:"Pro Tip",
     images:"AI Generated Images — choose your favourite",
     copy:"Copy Post", copied:"✓ Copied!", regen:"Regenerate",
@@ -65,6 +67,8 @@ const T = {
     linkError:"Couldn't read this link. Make sure it's a valid YouTube or article link.",
     sameEmailTip:"💡 Always use the same email — it keeps your plan and all your saved content.",
     useInCalendar:"📅 Use in Calendar",
+    savedToHistory:"✓ Saved to your History tab",
+    onboardHint:"👋 New here? Start by creating your first post below — fill in what you want to highlight and hit generate.",
     proRequired:"This feature is only available on the Pro plan.",
     proRequiredCta:"Upgrade to Pro →",
     // Calendar tab
@@ -147,6 +151,8 @@ const T = {
     btn:"Gerar Post + Imagens", loading:"Criando seu post…",
     imgLoading:"Gerando 3 imagens com IA… (~30 seg)",
     imgError:"Não foi possível gerar as imagens.",
+    downloadImg:"⬇ Baixar imagem",
+    retryImg:"🔄 Gerar imagens de novo",
     caption:"Legenda", hashtags:"Hashtags", tip:"Dica Pro",
     images:"Imagens Geradas por IA — escolha a sua favorita",
     copy:"Copiar Post", copied:"✓ Copiado!", regen:"Gerar Novamente",
@@ -161,6 +167,8 @@ const T = {
     linkError:"Não conseguimos ler esse link. Confere se é um link válido do YouTube ou de um artigo.",
     sameEmailTip:"💡 Use sempre o mesmo email — é ele que guarda seu plano e todo o seu conteúdo salvo.",
     useInCalendar:"📅 Usar no Calendário",
+    savedToHistory:"✓ Salvo na sua aba Histórico",
+    onboardHint:"👋 Primeira vez? Comece criando seu primeiro post abaixo — preencha o que quer destacar e clique em gerar.",
     proRequired:"Este recurso está disponível apenas no plano Pro.",
     proRequiredCta:"Assinar Pro →",
     calTitle:"Calendário de Conteúdo de 30 Dias",
@@ -238,6 +246,8 @@ const T = {
     btn:"Generar Post + Imágenes", loading:"Creando tu post…",
     imgLoading:"Generando 3 imágenes con IA… (~30 seg)",
     imgError:"No se pudieron generar las imágenes.",
+    downloadImg:"⬇ Descargar imagen",
+    retryImg:"🔄 Generar imágenes de nuevo",
     caption:"Caption", hashtags:"Hashtags", tip:"Consejo Pro",
     images:"Imágenes Generadas por IA — elige tu favorita",
     copy:"Copiar Post", copied:"✓ Copiado!", regen:"Regenerar",
@@ -252,6 +262,8 @@ const T = {
     linkError:"No pudimos leer este enlace. Verifica que sea un enlace válido de YouTube o de un artículo.",
     sameEmailTip:"💡 Usa siempre el mismo email — guarda tu plan y todo tu contenido guardado.",
     useInCalendar:"📅 Usar en Calendario",
+    savedToHistory:"✓ Guardado en tu pestaña Historial",
+    onboardHint:"👋 ¿Primera vez? Empieza creando tu primer post abajo — completa lo que quieres destacar y haz clic en generar.",
     proRequired:"Esta función solo está disponible en el plan Pro.",
     proRequiredCta:"Obtener Pro →",
     calTitle:"Calendario de Contenido de 30 Días",
@@ -467,9 +479,28 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
 
   function cp(){if(!result)return;navigator.clipboard.writeText(result.caption+"\n\n"+result.hashtags.map(h=>"#"+h.replace(/^#/,"")).join(" "));setCopied(true);setTimeout(()=>setCopied(false),2000);}
 
+  async function regenImages(){
+    if(lImg)return;
+    setImages([]);setSel(0);setImgErr(null);setLImg(true);
+    try{
+      const imgPrompt=buildImagePrompt();
+      const styles=["bright natural light, warm lifestyle photography","bold vibrant colors, modern graphic design","moody atmospheric, editorial photography style"];
+      const urls=[];let lastErr=null;
+      for(const s of styles){
+        const res=await img(imgPrompt+" Style: "+s);
+        if(res.url) urls.push(res.url);
+        if(res.error) lastErr=res.error;
+        setImages([...urls]);
+      }
+      if(urls.length===0&&lastErr) setImgErr(lastErr);
+    }catch(e){setImgErr(t.genericError);}
+    setLImg(false);
+  }
+
   const hlKey = hlOptions[hlOptions.indexOf(highlight)];
 
   return React.createElement('div',null,
+    !email&&!result&&React.createElement('div',{style:{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:12,padding:"12px 16px",marginBottom:12,fontSize:13,color:"#1e40af",lineHeight:1.5}},t.onboardHint),
     React.createElement('div',{style:{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#065f46"}},
       "💡 "+{en:"Answer the questions below for best results — the more detail, the better the image.",pt:"Responda as perguntas abaixo para melhores resultados — quanto mais detalhe, melhor a imagem.",es:"Responde las preguntas para mejores resultados — más detalle, mejor la imagen."}[lang]
     ),
@@ -523,6 +554,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
     usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:((usage.postsUsed||0)+"/"+(usage.featureLimit||100)+" "+t.usedThisMonth)),
     result&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{height:1,background:"#e2e8f0",marginBottom:20}}),
+      result.caption&&result.caption!==t.genericError&&React.createElement('div',{style:{fontSize:12,color:"#059669",fontWeight:600,marginBottom:12,textAlign:"center"}},t.savedToHistory),
       React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}},
         React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px"}},t.caption+" · "+(result.caption?.length||0)+" chars"),
         React.createElement('div',{style:{display:"flex",gap:8}},
@@ -538,7 +570,10 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
       ),
       React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}},t.images),
       lImg&&React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:14,padding:32,textAlign:"center"}},React.createElement('div',{style:{fontSize:24,marginBottom:8}},"🔍"),React.createElement('div',{style:{fontWeight:700,color:"#0f172a",marginBottom:4}},t.imgLoading)),
-      !lImg&&images.length===0&&imgErr&&React.createElement('div',{style:{padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13}},"⚠️ "+t.imgError+" ("+imgErr+")"),
+      !lImg&&images.length===0&&imgErr&&React.createElement('div',null,
+        React.createElement('div',{style:{padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13,marginBottom:10}},"⚠️ "+t.imgError),
+        React.createElement('button',{onClick:regenImages,style:{width:"100%",padding:"11px",background:"#0f172a",color:"#fff",border:"none",borderRadius:12,fontWeight:700,fontSize:14,cursor:"pointer"}},t.retryImg)
+      ),
       !lImg&&images.length>0&&React.createElement('div',null,
         React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}},
           images.map((url,i)=>React.createElement('div',{key:i,onClick:()=>setSel(i),style:{borderRadius:12,overflow:"hidden",aspectRatio:"1",cursor:"pointer",border:"3px solid "+(sel===i?"#0f172a":"transparent"),position:"relative"}},
@@ -546,7 +581,10 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
             sel===i&&React.createElement('div',{style:{position:"absolute",top:8,right:8,background:"#0f172a",color:"#fff",borderRadius:"50%",width:24,height:24,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:900}},"✓")
           ))
         ),
-        React.createElement('a',{href:images[sel],download:"post-image-"+(sel+1)+".png",style:{display:"block",padding:"11px",background:"#0f172a",color:"#fff",borderRadius:12,fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center"}},"⬇ Download Image "+(sel+1))
+        React.createElement('div',{style:{display:"flex",gap:8}},
+          React.createElement('a',{href:images[sel],download:"post-image-"+(sel+1)+".png",style:{flex:1,padding:"11px",background:"#0f172a",color:"#fff",borderRadius:12,fontWeight:700,fontSize:14,textDecoration:"none",textAlign:"center"}},t.downloadImg),
+          React.createElement('button',{onClick:regenImages,style:{padding:"11px 16px",background:"#f1f5f9",color:"#0f172a",border:"2px solid #e2e8f0",borderRadius:12,fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap"}},t.retryImg)
+        )
       )
     )
   );
@@ -1433,8 +1471,8 @@ function App(){
         React.createElement('div',{style:{width:32,height:32,background:"#0f172a",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",color:"#f59e0b",fontWeight:900,fontSize:16}},"C"),
         React.createElement('span',{style:{fontWeight:900,fontSize:18,color:"#0f172a"}},"Climber")
       ),
-      React.createElement('div',{style:{display:"flex",alignItems:"center",gap:6}},
-        email&&React.createElement('span',{title:email,style:{fontSize:12,color:"#64748b",fontWeight:600,maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"inline-block"}},"👤 "+email),
+      React.createElement('div',{style:{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}},
+        email&&React.createElement('span',{title:email,style:{fontSize:11,color:"#64748b",fontWeight:600,maxWidth:110,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"inline-block"}},"👤 "+email),
         ["en","pt","es"].map(l=>React.createElement('button',{key:l,onClick:()=>setLang(l),style:{padding:"5px 10px",borderRadius:8,border:"1.5px solid "+(lang===l?"#0f172a":"#e2e8f0"),background:lang===l?"#0f172a":"transparent",color:lang===l?"#fff":"#64748b",fontWeight:700,fontSize:12,cursor:"pointer"}},T[l].flag+" "+T[l].code)),
         React.createElement('button',{onClick:toApp,style:{padding:"9px 18px",background:"#0f172a",color:"#fff",border:"none",borderRadius:10,fontWeight:700,fontSize:13,cursor:"pointer",marginLeft:4}},t.startBtn)
       )
