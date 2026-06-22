@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Climber — Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:#0f172a;padding:24px;max-width:1100px;margin:0 auto}
+h1{font-size:24px;font-weight:900;margin-bottom:4px}
+.sub{color:#64748b;font-size:14px;margin-bottom:24px}
+.login{max-width:360px;margin:80px auto;background:#fff;border:2px solid #e2e8f0;border-radius:16px;padding:28px}
+input{width:100%;padding:12px 14px;border:2px solid #e2e8f0;border-radius:10px;font-size:15px;outline:none;margin-bottom:12px}
+button{padding:12px 20px;background:#0f172a;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer}
+button:hover{opacity:.9}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:#fff;border:2px solid #e2e8f0;border-radius:14px;padding:16px}
+.stat .label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px}
+.stat .value{font-size:28px;font-weight:900;margin-top:4px}
+.stat.mrr .value{color:#059669}
+.stat.pro .value{color:#7c3aed}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;border:2px solid #e2e8f0}
+th,td{text-align:left;padding:10px 12px;font-size:13px;border-bottom:1px solid #f1f5f9}
+th{background:#f8fafc;font-weight:700;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+.badge.free{background:#f1f5f9;color:#64748b}
+.badge.starter{background:#dbeafe;color:#1e40af}
+.badge.pro{background:#ede9fe;color:#7c3aed}
+.badge.blocked{background:#fee2e2;color:#dc2626}
+.err{color:#dc2626;font-size:13px;margin-top:8px}
+.hidden{display:none}
+.refresh{background:#f1f5f9;color:#0f172a;border:2px solid #e2e8f0;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div id="login" class="login">
+  <h1>Climber Admin</h1>
+  <p class="sub">Digite a senha de administrador</p>
+  <input type="password" id="secret" placeholder="Senha admin"/>
+  <button onclick="login()">Entrar</button>
+  <div id="loginErr" class="err"></div>
+</div>
+
+<div id="dashboard" class="hidden">
+  <h1>Climber — Painel</h1>
+  <p class="sub">Visão geral dos seus clientes</p>
+  <button class="refresh" onclick="loadData()">🔄 Atualizar</button>
+  <div class="stats" id="stats"></div>
+  <table>
+    <thead>
+      <tr><th>Email</th><th>Plano</th><th>Posts</th><th>Calendário</th><th>Legendas</th><th>Inspiração</th><th>Gerações recentes</th><th>Início ciclo</th></tr>
+    </thead>
+    <tbody id="usersBody"></tbody>
+  </table>
+</div>
+
+<script>
+let adminSecret = "";
+
+function login(){
+  const s = document.getElementById("secret").value.trim();
+  if(!s){return;}
+  adminSecret = s;
+  loadData(true);
+}
+
+async function loadData(fromLogin){
+  try{
+    const r = await fetch("/api/admin?secret=" + encodeURIComponent(adminSecret));
+    if(r.status === 401){
+      document.getElementById("loginErr").textContent = "Senha incorreta.";
+      return;
+    }
+    if(!r.ok){ throw new Error("Erro ao carregar"); }
+    const data = await r.json();
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    renderStats(data.stats);
+    renderUsers(data.users);
+  }catch(e){
+    document.getElementById("loginErr").textContent = e.message || "Erro";
+  }
+}
+
+function renderStats(s){
+  const el = document.getElementById("stats");
+  el.innerHTML = "";
+  const cards = [
+    {label:"Receita mensal (est.)", value:"€"+s.estimatedMrr, cls:"mrr"},
+    {label:"Total de clientes", value:s.totalUsers, cls:""},
+    {label:"Pro", value:s.proUsers, cls:"pro"},
+    {label:"Starter", value:s.starterUsers, cls:""},
+    {label:"Free", value:s.freeUsers, cls:""},
+    {label:"Bloqueados", value:s.blockedUsers, cls:""}
+  ];
+  for(const c of cards){
+    const d = document.createElement("div");
+    d.className = "stat " + c.cls;
+    d.innerHTML = '<div class="label">'+c.label+'</div><div class="value">'+c.value+'</div>';
+    el.appendChild(d);
+  }
+}
+
+function fmtDate(iso){
+  if(!iso) return "—";
+  try{ return new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}); }
+  catch(e){ return "—"; }
+}
+
+function renderUsers(users){
+  const body = document.getElementById("usersBody");
+  body.innerHTML = "";
+  if(!users || users.length === 0){
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:24px">Nenhum cliente ainda</td></tr>';
+    return;
+  }
+  // Sort: paid first, then by recent generations
+  users.sort((a,b)=>{
+    const rank = p => p==="pro"?0:p==="starter"?1:2;
+    if(rank(a.plan)!==rank(b.plan)) return rank(a.plan)-rank(b.plan);
+    return b.recentGenerations - a.recentGenerations;
+  });
+  for(const u of users){
+    const tr = document.createElement("tr");
+    const planBadge = '<span class="badge '+u.plan+'">'+u.plan+'</span>' + (u.blocked?' <span class="badge blocked">bloqueado</span>':'');
+    tr.innerHTML =
+      '<td>'+u.email+'</td>'+
+      '<td>'+planBadge+'</td>'+
+      '<td>'+u.postsUsed+'</td>'+
+      '<td>'+u.calendarUsed+'</td>'+
+      '<td>'+u.promoUsed+'</td>'+
+      '<td>'+u.inspirationUsed+'</td>'+
+      '<td>'+u.recentGenerations+'</td>'+
+      '<td>'+fmtDate(u.cycleStart)+'</td>';
+    body.appendChild(tr);
+  }
+}
+
+document.getElementById("secret").addEventListener("keydown", e=>{ if(e.key==="Enter") login(); });
+</script>
+</body>
+</html>
