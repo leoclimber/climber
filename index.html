@@ -69,6 +69,11 @@ const T = {
     useInCalendar:"📅 Use in Calendar",
     savedToHistory:"✓ Saved to your History tab",
     onboardHint:"👋 New here? Start by creating your first post below — fill in what you want to highlight and hit generate.",
+    descCreate:"Create a ready-to-post photo + caption for your business. Just answer a few quick questions.",
+    descCaptions:"Need words for a post you already have? Get ready-to-use captions for any occasion or promotion.",
+    descInspiration:"Saw a video or article you liked? Paste the link and turn it into posts for all your social media.",
+    descCalendar:"Don't know what to post all month? Get a full 30-day plan with ideas for every day.",
+    descHistory:"Everything you've created is saved here. Come back anytime to copy or download it again.",
     proRequired:"This feature is only available on the Pro plan.",
     proRequiredCta:"Upgrade to Pro →",
     // Calendar tab
@@ -169,6 +174,11 @@ const T = {
     useInCalendar:"📅 Usar no Calendário",
     savedToHistory:"✓ Salvo na sua aba Histórico",
     onboardHint:"👋 Primeira vez? Comece criando seu primeiro post abaixo — preencha o que quer destacar e clique em gerar.",
+    descCreate:"Crie um post pronto pra publicar: foto + legenda pro seu negócio. É só responder algumas perguntas rápidas.",
+    descCaptions:"Precisa só do texto pra um post que você já tem? Receba legendas prontas pra qualquer data ou promoção.",
+    descInspiration:"Viu um vídeo ou artigo que gostou? Cole o link e transforme em posts pra todas as suas redes sociais.",
+    descCalendar:"Não sabe o que postar o mês todo? Receba um plano completo de 30 dias com ideias pra cada dia.",
+    descHistory:"Tudo que você criou fica salvo aqui. Volte quando quiser pra copiar ou baixar de novo.",
     proRequired:"Este recurso está disponível apenas no plano Pro.",
     proRequiredCta:"Assinar Pro →",
     calTitle:"Calendário de Conteúdo de 30 Dias",
@@ -264,6 +274,11 @@ const T = {
     useInCalendar:"📅 Usar en Calendario",
     savedToHistory:"✓ Guardado en tu pestaña Historial",
     onboardHint:"👋 ¿Primera vez? Empieza creando tu primer post abajo — completa lo que quieres destacar y haz clic en generar.",
+    descCreate:"Crea un post listo para publicar: foto + texto para tu negocio. Solo responde unas preguntas rápidas.",
+    descCaptions:"¿Necesitas solo el texto para un post que ya tienes? Recibe textos listos para cualquier ocasión o promoción.",
+    descInspiration:"¿Viste un video o artículo que te gustó? Pega el enlace y conviértelo en posts para todas tus redes.",
+    descCalendar:"¿No sabes qué publicar todo el mes? Recibe un plan completo de 30 días con ideas para cada día.",
+    descHistory:"Todo lo que creaste se guarda aquí. Vuelve cuando quieras para copiar o descargar de nuevo.",
     proRequired:"Esta función solo está disponible en el plan Pro.",
     proRequiredCta:"Obtener Pro →",
     calTitle:"Calendario de Contenido de 30 Días",
@@ -356,6 +371,12 @@ const CALENDAR_PREVIEW = {
 function F(){return{width:"100%",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:12,padding:"12px 14px",fontSize:14,outline:"none",color:"#0f172a",transition:"border-color .2s"};}
 function S(){return{...F(),appearance:"none",cursor:"pointer",backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E\")",backgroundRepeat:"no-repeat",backgroundPosition:"right 12px center",paddingRight:36};}
 function Lbl({t}){return React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:7}},t);}
+function TabIntro({title,desc}){
+  return React.createElement('div',{style:{marginBottom:18}},
+    React.createElement('div',{style:{fontSize:20,fontWeight:900,color:"#0f172a",marginBottom:4,letterSpacing:"-0.5px"}},title),
+    React.createElement('div',{style:{fontSize:13,color:"#64748b",lineHeight:1.5}},desc)
+  );
+}
 function Btn({text,onClick,disabled,color}){return React.createElement('button',{onClick,disabled,style:{width:"100%",padding:15,background:disabled?"#e2e8f0":color||"#0f172a",color:disabled?"#94a3b8":"#fff",border:"none",borderRadius:14,fontWeight:800,fontSize:15,cursor:disabled?"not-allowed":"pointer",transition:"all .2s"}},text);}
 function CopyBtn({getText,lang,small}){
   const[copied,setCopied]=React.useState(false);
@@ -500,6 +521,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
   const hlKey = hlOptions[hlOptions.indexOf(highlight)];
 
   return React.createElement('div',null,
+    React.createElement(TabIntro,{title:t.tabs[0],desc:t.descCreate}),
     !email&&!result&&React.createElement('div',{style:{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:12,padding:"12px 16px",marginBottom:12,fontSize:13,color:"#1e40af",lineHeight:1.5}},t.onboardHint),
     React.createElement('div',{style:{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#065f46"}},
       "💡 "+{en:"Answer the questions below for best results — the more detail, the better the image.",pt:"Responda as perguntas abaixo para melhores resultados — quanto mais detalhe, melhor a imagem.",es:"Responde las preguntas para mejores resultados — más detalle, mejor la imagen."}[lang]
@@ -870,6 +892,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
   }
 
   return React.createElement('div',null,
+    React.createElement(TabIntro,{title:t.tabs[3],desc:t.descCalendar}),
     inspNote&&React.createElement('div',{style:{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:13,color:"#065f46"}},
       "✨ "+{en:"Content from Inspiration added to your calendar.",pt:"Conteúdo da Inspiração adicionado ao calendário.",es:"Contenido de Inspiración añadido al calendario."}[lang]
     ),
@@ -979,6 +1002,7 @@ function CaptionsTab({t,lang,email,usage,setUsage,saveEmail,setTab}){
   const captionCustomLabel={en:"Want to add your own promotion too? (optional)",pt:"Quer adicionar sua própria promoção também? (opcional)",es:"¿Quieres añadir tu propia promoción también? (opcional)"}[lang];
 
   return React.createElement('div',null,
+    React.createElement(TabIntro,{title:t.tabs[1],desc:t.descCaptions}),
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
       React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
@@ -1133,6 +1157,7 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
   }
 
   return React.createElement('div',null,
+    React.createElement(TabIntro,{title:t.tabs[2],desc:t.descInspiration}),
     React.createElement('div',{style:{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#0c4a6e"}},
       "✨ "+t.inspDesc
     ),
@@ -1381,6 +1406,7 @@ function HistoryTab({t,lang,email,saveEmail,setTab,onSendToCalendar}){
   }
 
   return React.createElement('div',null,
+    React.createElement(TabIntro,{title:t.tabs[5],desc:t.descHistory}),
     React.createElement('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}},
       React.createElement('div',{style:{fontSize:13,color:"#64748b"}},React.createElement('span',{style:{fontWeight:700,color:"#0f172a"}},email)),
       React.createElement('button',{onClick:loadHistory,style:{padding:"6px 12px",background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:8,fontWeight:600,fontSize:12,cursor:"pointer",color:"#475569"}},{en:"🔄 Refresh",pt:"🔄 Atualizar",es:"🔄 Actualizar"}[lang])
@@ -1492,7 +1518,7 @@ function App(){
     React.createElement('section',{id:"app",style:{padding:"0 24px 80px",maxWidth:820,margin:"0 auto"}},
       React.createElement('div',{style:{background:"#fff",border:"2px solid #e2e8f0",borderRadius:24,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,.08)"}},
         React.createElement('div',{style:{borderBottom:"2px solid #e2e8f0",display:"flex",overflowX:"auto"}},
-          t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 0 auto",padding:"14px 20px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px"}},tb))
+          t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 0 auto",padding:"14px 20px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px",position:"relative"}},tb,(i===2||i===3)&&React.createElement('span',{style:{fontSize:9,fontWeight:800,color:"#7c3aed",background:"#ede9fe",borderRadius:4,padding:"1px 5px",marginLeft:5,verticalAlign:"middle",letterSpacing:"0.5px"}},"PRO")))
         ),
         React.createElement('div',{style:{padding:24}},
           React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt:createPrompt})),
