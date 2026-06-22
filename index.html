@@ -854,6 +854,7 @@ function CalendarTab({t,lang,email,usage,setUsage,saveEmail,setTab,inspirationEn
   // Show preview for free/non-pro users
   if(freeUser||proBlocked){
     return React.createElement('div',null,
+      React.createElement(TabIntro,{title:t.tabs[3],desc:t.descCalendar}),
       modalDay&&React.createElement(DayModal,{day:modalDay,onClose:()=>setModalDay(null),lang}),
       !email&&React.createElement('div',{style:{marginBottom:14}},
         React.createElement(Lbl,{t:t.emailLabel}),
@@ -1149,10 +1150,13 @@ function InspirationTab({t,lang,email,saveEmail,setTab,onSendToCalendar,onSendTo
   }
 
   if(proBlocked){
-    return React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"22px",textAlign:"center",cursor:"pointer"}},
-      React.createElement('div',{style:{fontSize:28,marginBottom:8}},"🔒"),
-      React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#fff",marginBottom:6}},t.proRequired),
-      React.createElement('div',{style:{fontWeight:800,fontSize:14,color:"#f59e0b"}},t.proRequiredCta)
+    return React.createElement('div',null,
+      React.createElement(TabIntro,{title:t.tabs[2],desc:t.descInspiration}),
+      React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"22px",textAlign:"center",cursor:"pointer"}},
+        React.createElement('div',{style:{fontSize:28,marginBottom:8}},"🔒"),
+        React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#fff",marginBottom:6}},t.proRequired),
+        React.createElement('div',{style:{fontWeight:800,fontSize:14,color:"#f59e0b"}},t.proRequiredCta)
+      )
     );
   }
 
