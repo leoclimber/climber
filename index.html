@@ -50,6 +50,11 @@ const T = {
     bizVibe:"Your business vibe",bizVibes:["Warm & welcoming","Modern & sleek","Fun & energetic","Rustic & cosy","Professional & trustworthy"],
     btn:"Generate Post + Images", loading:"Creating your post…",
     imgLoading:"Generating 3 AI images… (~30 sec)",
+    imgWaitNote:"Please wait — this takes about 30 seconds. Don't close the page.",
+    emailWhy:"We just need your email to save your content so you can find it later.",
+    optional:"(optional)",
+    exampleTitle:"👀 Example of what you'll get:",
+    exampleText:"A ready-to-post caption + 3 photo options for your business. You pick your favorite, copy it, and post. That simple.",
     imgError:"Couldn't generate images.",
     downloadImg:"⬇ Download image",
     retryImg:"🔄 Generate images again",
@@ -155,6 +160,11 @@ const T = {
     bizVibe:"Como é o clima do seu negócio?",bizVibes:["Acolhedor e familiar","Moderno e sofisticado","Animado e divertido","Rústico e charmoso","Profissional e confiável"],
     btn:"Gerar Post + Imagens", loading:"Criando seu post…",
     imgLoading:"Gerando 3 imagens com IA… (~30 seg)",
+    imgWaitNote:"Aguarde um momento — isso leva uns 30 segundos. Não feche a página.",
+    emailWhy:"Só precisamos do seu email para salvar seu conteúdo e você encontrar depois.",
+    optional:"(opcional)",
+    exampleTitle:"👀 Exemplo do que você vai receber:",
+    exampleText:"Uma legenda pronta pra postar + 3 opções de foto pro seu negócio. Você escolhe a favorita, copia e posta. Simples assim.",
     imgError:"Não foi possível gerar as imagens.",
     downloadImg:"⬇ Baixar imagem",
     retryImg:"🔄 Gerar imagens de novo",
@@ -255,6 +265,11 @@ const T = {
     bizVibe:"¿Cómo es el ambiente de tu negocio?",bizVibes:["Cálido y acogedor","Moderno y elegante","Divertido y energético","Rústico y encantador","Profesional y confiable"],
     btn:"Generar Post + Imágenes", loading:"Creando tu post…",
     imgLoading:"Generando 3 imágenes con IA… (~30 seg)",
+    imgWaitNote:"Espera un momento — esto tarda unos 30 segundos. No cierres la página.",
+    emailWhy:"Solo necesitamos tu email para guardar tu contenido y que lo encuentres después.",
+    optional:"(opcional)",
+    exampleTitle:"👀 Ejemplo de lo que recibirás:",
+    exampleText:"Un texto listo para publicar + 3 opciones de foto para tu negocio. Eliges tu favorita, la copias y publicas. Así de simple.",
     imgError:"No se pudieron generar las imágenes.",
     downloadImg:"⬇ Descargar imagen",
     retryImg:"🔄 Generar imágenes de nuevo",
@@ -523,6 +538,10 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
   return React.createElement('div',null,
     React.createElement(TabIntro,{title:t.tabs[0],desc:t.descCreate}),
     !email&&!result&&React.createElement('div',{style:{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:12,padding:"12px 16px",marginBottom:12,fontSize:13,color:"#1e40af",lineHeight:1.5}},t.onboardHint),
+    !email&&!result&&React.createElement('div',{style:{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:12,padding:"12px 16px",marginBottom:16,fontSize:13,color:"#92400e",lineHeight:1.5}},
+      React.createElement('div',{style:{fontWeight:700,marginBottom:3}},t.exampleTitle),
+      React.createElement('div',null,t.exampleText)
+    ),
     React.createElement('div',{style:{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"10px 14px",marginBottom:16,fontSize:13,color:"#065f46"}},
       "💡 "+{en:"Answer the questions below for best results — the more detail, the better the image.",pt:"Responda as perguntas abaixo para melhores resultados — quanto mais detalhe, melhor a imagem.",es:"Responde las preguntas para mejores resultados — más detalle, mejor la imagen."}[lang]
     ),
@@ -544,22 +563,22 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
     ),
     // Q2: Occasion
     React.createElement('div',{style:{marginBottom:14}},
-      React.createElement(Lbl,{t:t.occasion}),
+      React.createElement(Lbl,{t:t.occasion+" "+t.optional}),
       React.createElement('input',{value:occasion,onChange:e=>setOccasion(e.target.value),placeholder:t.occasionPh,style:F()})
     ),
     // Q3: Discount
     React.createElement('div',{style:{marginBottom:14}},
-      React.createElement(Lbl,{t:t.hasDiscount}),
+      React.createElement(Lbl,{t:t.hasDiscount+" "+t.optional}),
       React.createElement('input',{value:discount,onChange:e=>setDiscount(e.target.value),placeholder:t.hasDiscountPh,style:F()})
     ),
     // Q4: Colors
     React.createElement('div',{style:{marginBottom:14}},
-      React.createElement(Lbl,{t:t.bizColors}),
+      React.createElement(Lbl,{t:t.bizColors+" "+t.optional}),
       React.createElement('input',{value:colors,onChange:e=>setColors(e.target.value),placeholder:t.bizColorsPh,style:F()})
     ),
     // Q5: Vibe
     React.createElement('div',{style:{marginBottom:20}},
-      React.createElement(Lbl,{t:t.bizVibe}),
+      React.createElement(Lbl,{t:t.bizVibe+" "+t.optional}),
       React.createElement('div',{style:{display:"flex",gap:8,flexWrap:"wrap"}},
         t.bizVibes.map((v,i)=>React.createElement('button',{key:i,onClick:()=>setVibe(i),style:{padding:"7px 14px",borderRadius:20,border:"2px solid "+(vibe===i?"#0f172a":"#e2e8f0"),background:vibe===i?"#0f172a":"#fff",color:vibe===i?"#fff":"#475569",fontWeight:600,fontSize:13,cursor:"pointer"}},v))
       )
@@ -567,11 +586,12 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
     !email&&React.createElement('div',{style:{marginBottom:14}},
       React.createElement(Lbl,{t:t.emailLabel}),
       React.createElement('input',{type:"email",value:emailInput,onChange:e=>setEmailInput(e.target.value),placeholder:t.emailPh,style:F()}),
-      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.sameEmailTip)
+      React.createElement('div',{style:{fontSize:12,color:"#475569",marginTop:6,lineHeight:1.4}},t.emailWhy),
+      React.createElement('div',{style:{fontSize:11,color:"#94a3b8",marginTop:4,lineHeight:1.4}},t.sameEmailTip)
     ),
     limit
       ?React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"18px 22px",textAlign:"center",cursor:"pointer"}},React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#f59e0b"}},t.upgrade))
-      :React.createElement(Btn,{text:lPost?"⏳ "+t.loading:(email?"✦ "+t.btn:t.continueBtn),onClick:gen,disabled:lPost||!highlight||!highlightDetail}),
+      :React.createElement(Btn,{text:lPost?"⏳ "+t.loading:"✦ "+t.btn,onClick:gen,disabled:lPost||!highlight||!highlightDetail}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
     usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:((usage.postsUsed||0)+"/"+(usage.featureLimit||100)+" "+t.usedThisMonth)),
     result&&React.createElement('div',{style:{marginTop:24}},
@@ -591,7 +611,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
         React.createElement('div',null,React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#059669",textTransform:"uppercase",letterSpacing:"1px",marginBottom:3}},t.tip),React.createElement('div',{style:{fontSize:14,color:"#065f46",lineHeight:1.55}},result.tip))
       ),
       React.createElement('div',{style:{fontSize:11,fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:10}},t.images),
-      lImg&&React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:14,padding:32,textAlign:"center"}},React.createElement('div',{style:{fontSize:24,marginBottom:8}},"🔍"),React.createElement('div',{style:{fontWeight:700,color:"#0f172a",marginBottom:4}},t.imgLoading)),
+      lImg&&React.createElement('div',{style:{background:"#f8fafc",border:"2px solid #e2e8f0",borderRadius:14,padding:32,textAlign:"center"}},React.createElement('div',{style:{fontSize:24,marginBottom:8}},"🎨"),React.createElement('div',{style:{fontWeight:700,color:"#0f172a",marginBottom:4}},t.imgLoading),React.createElement('div',{style:{fontSize:12,color:"#94a3b8",marginTop:6,lineHeight:1.4}},t.imgWaitNote)),
       !lImg&&images.length===0&&imgErr&&React.createElement('div',null,
         React.createElement('div',{style:{padding:14,background:"#fef2f2",border:"2px solid #fecaca",borderRadius:12,color:"#991b1b",fontWeight:600,fontSize:13,marginBottom:10}},"⚠️ "+t.imgError),
         React.createElement('button',{onClick:regenImages,style:{width:"100%",padding:"11px",background:"#0f172a",color:"#fff",border:"none",borderRadius:12,fontWeight:700,fontSize:14,cursor:"pointer"}},t.retryImg)
