@@ -68,6 +68,7 @@ const T = {
     continueBtn:"Continue", limitReached:"Free limit reached.", planLimitReached:"You've reached your plan's monthly limit.", accessBlocked:"This account is blocked. Please contact support.",
     unlimitedPlan:"Unlimited posts on your plan",
     usedThisMonth:"used this month",
+    generatedThisMonth:"generated this month",
     genericError:"Couldn't generate right now. Please try again in a moment.",
     linkError:"Couldn't read this link. Make sure it's a valid YouTube or article link.",
     sameEmailTip:"💡 Always use the same email — it keeps your plan and all your saved content.",
@@ -123,14 +124,20 @@ const T = {
     inspGoCreate:"Go to Create tab →",
     // Pricing
     pricingTitle:"Simple pricing.", pricingSub:"Start free. Upgrade when ready.",
+    starterFor:"For who posts a few times a week",
+    proFor:"For who wants to post every day & save time",
     starter:"Starter", starterPrice:"€19", starterPer:"/mo",
-    starterFeatures:["50 posts/month","AI image generation","Hashtag generator","30 captions/month","Email support"],
+    starterFeatures:["50 posts per month","AI photos for your posts","Ready-made hashtags","30 captions per month","Help by email"],
     starterCta:"Get Starter",
     pro:"Pro", proPrice:"€39", proPer:"/mo", proBadge:"Most Popular",
-    proFeatures:["Unlimited posts","All 5 platforms","30-day AI calendar","100 captions/month","Inspiration tab","3 AI images per post","Priority support"],
+    proFeatures:["Unlimited posts (fair use: 100/mo)","Post for all 5 social networks","Full 30-day content calendar","100 captions per month","Turn any link into posts (Inspiration)","3 photo options per post","Priority help"],
     proCta:"Get Pro",
     pricingNote:"All prices EUR · VAT may apply · Payments by Stripe 🔒",
     footer:"Made with ❤️ in Dublin · Climber © 2026",
+    whatsappHelp:"Need help? Talk to us",
+    welcomePro:"🎉 Welcome to Pro! You now have access to everything. Enjoy!",
+    welcomeStarter:"🎉 Welcome to Starter! Your plan is active. Enjoy!",
+    termsLink:"Terms", privacyLink:"Privacy",
     // Free preview
     calPreviewTitle:"Here's an example of what your calendar looks like",
     calPreviewCta:"Unlock your full 30-day calendar",
@@ -178,6 +185,7 @@ const T = {
     continueBtn:"Continuar", limitReached:"Limite grátis atingido.", planLimitReached:"Você atingiu o limite mensal do seu plano.", accessBlocked:"Esta conta está bloqueada. Entre em contato com o suporte.",
     unlimitedPlan:"Posts ilimitados no seu plano",
     usedThisMonth:"usados este mês",
+    generatedThisMonth:"gerados este mês",
     genericError:"Não conseguimos gerar agora. Tenta de novo em instantes.",
     linkError:"Não conseguimos ler esse link. Confere se é um link válido do YouTube ou de um artigo.",
     sameEmailTip:"💡 Use sempre o mesmo email — é ele que guarda seu plano e todo o seu conteúdo salvo.",
@@ -229,14 +237,20 @@ const T = {
     inspCaptionInstr:"Tire uma foto do seu negócio e use esta legenda:",
     inspGoCreate:"Ir para aba Criar →",
     pricingTitle:"Preço simples.", pricingSub:"Comece grátis. Faça upgrade quando quiser.",
+    starterFor:"Pra quem posta algumas vezes por semana",
+    proFor:"Pra quem quer postar todo dia e economizar tempo",
     starter:"Starter", starterPrice:"€19", starterPer:"/mês",
-    starterFeatures:["50 posts/mês","Geração de imagens com IA","Gerador de hashtags","30 legendas/mês","Suporte por email"],
+    starterFeatures:["50 posts por mês","Fotos com IA pros seus posts","Hashtags prontas","30 legendas por mês","Ajuda por email"],
     starterCta:"Assinar Starter",
     pro:"Pro", proPrice:"€39", proPer:"/mês", proBadge:"Mais Popular",
-    proFeatures:["Posts ilimitados","Todas as 5 plataformas","Calendário IA de 30 dias","100 legendas/mês","Aba Inspiração","3 imagens de IA por post","Suporte prioritário"],
+    proFeatures:["Posts ilimitados (uso justo: 100/mês)","Poste pras 5 redes sociais","Calendário completo de 30 dias","100 legendas por mês","Transforme qualquer link em posts (Inspiração)","3 opções de foto por post","Ajuda prioritária"],
     proCta:"Assinar Pro",
     pricingNote:"Preços em EUR · IVA pode ser aplicado · Pagamentos via Stripe 🔒",
     footer:"Feito com ❤️ em Dublin · Climber © 2026",
+    whatsappHelp:"Precisa de ajuda? Fale com a gente",
+    welcomePro:"🎉 Bem-vindo ao Pro! Agora você tem acesso a tudo. Aproveite!",
+    welcomeStarter:"🎉 Bem-vindo ao Starter! Seu plano está ativo. Aproveite!",
+    termsLink:"Termos", privacyLink:"Privacidade",
     calPreviewTitle:"Veja um exemplo de como fica o seu calendário",
     calPreviewCta:"Desbloqueie seu calendário de 30 dias completo",
     calPreviewSub:"Pare de improvisar. Tenha 30 dias de conteúdo prontos para postar — hoje.",
@@ -283,6 +297,7 @@ const T = {
     continueBtn:"Continuar", limitReached:"Límite gratis alcanzado.", planLimitReached:"Has alcanzado el límite mensual de tu plan.", accessBlocked:"Esta cuenta está bloqueada. Contacta con soporte.",
     unlimitedPlan:"Posts ilimitados en tu plan",
     usedThisMonth:"usados este mes",
+    generatedThisMonth:"generados este mes",
     genericError:"No pudimos generar ahora. Intenta de nuevo en un momento.",
     linkError:"No pudimos leer este enlace. Verifica que sea un enlace válido de YouTube o de un artículo.",
     sameEmailTip:"💡 Usa siempre el mismo email — guarda tu plan y todo tu contenido guardado.",
@@ -334,14 +349,20 @@ const T = {
     inspCaptionInstr:"Toma una foto de tu negocio y usa este caption:",
     inspGoCreate:"Ir a la pestaña Crear →",
     pricingTitle:"Precio simple.", pricingSub:"Empieza gratis. Actualiza cuando quieras.",
+    starterFor:"Para quien publica algunas veces por semana",
+    proFor:"Para quien quiere publicar cada día y ahorrar tiempo",
     starter:"Starter", starterPrice:"€19", starterPer:"/mes",
-    starterFeatures:["50 posts/mes","Generación de imágenes IA","Generador de hashtags","30 captions/mes","Soporte por email"],
+    starterFeatures:["50 posts por mes","Fotos con IA para tus posts","Hashtags listas","30 captions por mes","Ayuda por email"],
     starterCta:"Obtener Starter",
     pro:"Pro", proPrice:"€39", proPer:"/mes", proBadge:"Más Popular",
-    proFeatures:["Posts ilimitados","Las 5 plataformas","Calendario IA 30 días","100 captions/mes","Pestaña Inspiración","3 imágenes IA por post","Soporte prioritario"],
+    proFeatures:["Posts ilimitados (uso justo: 100/mes)","Publica en las 5 redes sociales","Calendario completo de 30 días","100 captions por mes","Convierte cualquier enlace en posts (Inspiración)","3 opciones de foto por post","Ayuda prioritaria"],
     proCta:"Obtener Pro",
     pricingNote:"Precios en EUR · IVA puede aplicar · Pagos via Stripe 🔒",
     footer:"Hecho con ❤️ en Dublín · Climber © 2026",
+    whatsappHelp:"¿Necesitas ayuda? Habla con nosotros",
+    welcomePro:"🎉 ¡Bienvenido a Pro! Ahora tienes acceso a todo. ¡Disfruta!",
+    welcomeStarter:"🎉 ¡Bienvenido a Starter! Tu plan está activo. ¡Disfruta!",
+    termsLink:"Términos", privacyLink:"Privacidad",
     calPreviewTitle:"Así es cómo queda tu calendario",
     calPreviewCta:"Desbloquea tu calendario completo de 30 días",
     calPreviewSub:"Deja de improvisar. Ten 30 días de contenido listos para publicar — hoy.",
@@ -593,7 +614,7 @@ function CreateTab({t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt}
       ?React.createElement('div',{onClick:()=>{setTab(4);window.scrollTo({top:0,behavior:"smooth"});},style:{background:"#0f172a",borderRadius:14,padding:"18px 22px",textAlign:"center",cursor:"pointer"}},React.createElement('div',{style:{fontWeight:800,fontSize:15,color:"#f59e0b"}},t.upgrade))
       :React.createElement(Btn,{text:lPost?"⏳ "+t.loading:"✦ "+t.btn,onClick:gen,disabled:lPost||!highlight||!highlightDetail}),
     genErr&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:600}},genErr),
-    usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:((usage.postsUsed||0)+"/"+(usage.featureLimit||100)+" "+t.usedThisMonth)),
+    usage&&!limit&&React.createElement('div',{style:{textAlign:"center",marginTop:8,fontSize:12,color:"#94a3b8"}},usage.plan==="free"?Math.max(0,(usage.featureLimit||3)-usage.postsUsed)+" "+t.postsLeft:((usage.postsUsed||0)+" "+t.generatedThisMonth)),
     result&&React.createElement('div',{style:{marginTop:24}},
       React.createElement('div',{style:{height:1,background:"#e2e8f0",marginBottom:20}}),
       result.caption&&result.caption!==t.genericError&&React.createElement('div',{style:{fontSize:12,color:"#059669",fontWeight:600,marginBottom:12,textAlign:"center"}},t.savedToHistory),
@@ -1301,6 +1322,7 @@ function PricingTab({t,email}){
     React.createElement('div',{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,maxWidth:600,margin:"0 auto"}},
       React.createElement('div',{style:{background:"#fff",border:"2px solid #e2e8f0",borderRadius:20,padding:28,boxShadow:"0 2px 12px rgba(0,0,0,.06)"}},
         React.createElement('div',{style:{fontWeight:900,fontSize:20,color:"#0f172a",marginBottom:6}},t.starter),
+        React.createElement('div',{style:{fontSize:12,color:"#94a3b8",marginBottom:10,lineHeight:1.4}},t.starterFor),
         React.createElement('div',{style:{display:"flex",alignItems:"baseline",gap:3,marginBottom:24}},React.createElement('span',{style:{fontSize:48,fontWeight:900,color:"#0f172a",letterSpacing:"-2px"}},t.starterPrice),React.createElement('span',{style:{fontSize:14,color:"#94a3b8"}},t.starterPer)),
         React.createElement('div',{style:{borderTop:"1px solid #e2e8f0",paddingTop:20,marginBottom:24}},t.starterFeatures.map((f,i)=>React.createElement('div',{key:i,style:{display:"flex",gap:10,marginBottom:10,fontSize:13,color:"#475569"}},React.createElement('span',{style:{color:"#059669",fontWeight:800}},"✓"),f))),
         React.createElement('button',{onClick:()=>openCheckout(STRIPE.starter),style:{width:"100%",padding:14,background:"#0f172a",color:"#fff",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:"pointer"}},t.starterCta)
@@ -1308,6 +1330,7 @@ function PricingTab({t,email}){
       React.createElement('div',{style:{background:"#0f172a",borderRadius:20,padding:28,position:"relative",boxShadow:"0 20px 60px rgba(15,23,42,.25)"}},
         React.createElement('div',{style:{position:"absolute",top:-14,left:"50%",transform:"translateX(-50%)",background:"#f59e0b",color:"#000",borderRadius:100,padding:"4px 16px",fontSize:12,fontWeight:800,whiteSpace:"nowrap"}},t.proBadge),
         React.createElement('div',{style:{fontWeight:900,fontSize:20,color:"#fff",marginBottom:6}},t.pro),
+        React.createElement('div',{style:{fontSize:12,color:"rgba(255,255,255,.6)",marginBottom:10,lineHeight:1.4}},t.proFor),
         React.createElement('div',{style:{display:"flex",alignItems:"baseline",gap:3,marginBottom:24}},React.createElement('span',{style:{fontSize:48,fontWeight:900,color:"#f59e0b",letterSpacing:"-2px"}},t.proPrice),React.createElement('span',{style:{fontSize:14,color:"rgba(255,255,255,.5)"}},t.proPer)),
         React.createElement('div',{style:{borderTop:"1px solid rgba(255,255,255,.15)",paddingTop:20,marginBottom:24}},t.proFeatures.map((f,i)=>React.createElement('div',{key:i,style:{display:"flex",gap:10,marginBottom:10,fontSize:13,color:"rgba(255,255,255,.8)"}},React.createElement('span',{style:{color:"#f59e0b",fontWeight:800}},"✓"),f))),
         React.createElement('button',{onClick:()=>openCheckout(STRIPE.pro),style:{width:"100%",padding:14,background:"#f59e0b",color:"#000",border:"none",borderRadius:12,fontWeight:800,fontSize:14,cursor:"pointer"}},t.proCta)
@@ -1481,7 +1504,19 @@ function App(){
   const[usage,setUsage]=React.useState(null);
   const[inspirationEntry,setInspirationEntry]=React.useState(null);
   const[createPrompt,setCreatePrompt]=React.useState(null);
+  const[showWelcome,setShowWelcome]=React.useState(false);
   const t=T[lang];
+
+  React.useEffect(()=>{
+    try{
+      const params=new URLSearchParams(window.location.search);
+      if(params.get("welcome")==="1"){
+        setShowWelcome(true);
+        // Clean the URL so it doesn't show again on refresh
+        window.history.replaceState({},"",window.location.pathname);
+      }
+    }catch(e){}
+  },[]);
 
   React.useEffect(()=>{
     const h=()=>setScrolled(window.scrollY>40);
@@ -1540,6 +1575,7 @@ function App(){
       )
     ),
     React.createElement('section',{id:"app",style:{padding:"0 24px 80px",maxWidth:820,margin:"0 auto"}},
+      showWelcome&&usage&&(usage.plan==="pro"||usage.plan==="starter")&&React.createElement('div',{style:{background:"#f0fdf4",border:"2px solid #86efac",borderRadius:16,padding:"16px 20px",marginBottom:16,fontSize:15,fontWeight:700,color:"#065f46",textAlign:"center"}},usage.plan==="pro"?t.welcomePro:t.welcomeStarter),
       React.createElement('div',{style:{background:"#fff",border:"2px solid #e2e8f0",borderRadius:24,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,.08)"}},
         React.createElement('div',{style:{borderBottom:"2px solid #e2e8f0",display:"flex",flexWrap:"wrap",justifyContent:"center"}},
           t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 1 auto",padding:"12px 16px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px",position:"relative"}},tb,(i===2||i===3)&&React.createElement('span',{style:{fontSize:9,fontWeight:800,color:"#7c3aed",background:"#ede9fe",borderRadius:4,padding:"1px 5px",marginLeft:5,verticalAlign:"middle",letterSpacing:"0.5px"}},"PRO")))
@@ -1554,7 +1590,14 @@ function App(){
         )
       )
     ),
-    React.createElement('footer',{style:{textAlign:"center",padding:"24px",borderTop:"1px solid #e2e8f0",color:"#94a3b8",fontSize:13}},t.footer)
+    React.createElement('footer',{style:{textAlign:"center",padding:"24px",borderTop:"1px solid #e2e8f0",color:"#94a3b8",fontSize:13}},
+      React.createElement('div',null,t.footer),
+      React.createElement('div',{style:{marginTop:8,display:"flex",gap:16,justifyContent:"center"}},
+        React.createElement('a',{href:"/terms.html",target:"_blank",style:{color:"#64748b",textDecoration:"underline",fontSize:12}},t.termsLink),
+        React.createElement('a',{href:"/privacy.html",target:"_blank",style:{color:"#64748b",textDecoration:"underline",fontSize:12}},t.privacyLink)
+      )
+    ),
+    React.createElement('a',{href:"https://wa.me/353000000000",target:"_blank",title:t.whatsappHelp,style:{position:"fixed",bottom:20,right:20,background:"#25D366",color:"#fff",width:56,height:56,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,boxShadow:"0 4px 16px rgba(37,211,102,.5)",textDecoration:"none",zIndex:1000}},"💬")
   );
 }
 
