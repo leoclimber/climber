@@ -1521,8 +1521,8 @@ function App(){
     ),
     React.createElement('section',{id:"app",style:{padding:"0 24px 80px",maxWidth:820,margin:"0 auto"}},
       React.createElement('div',{style:{background:"#fff",border:"2px solid #e2e8f0",borderRadius:24,overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,.08)"}},
-        React.createElement('div',{style:{borderBottom:"2px solid #e2e8f0",display:"flex",overflowX:"auto"}},
-          t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 0 auto",padding:"14px 20px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px",position:"relative"}},tb,(i===2||i===3)&&React.createElement('span',{style:{fontSize:9,fontWeight:800,color:"#7c3aed",background:"#ede9fe",borderRadius:4,padding:"1px 5px",marginLeft:5,verticalAlign:"middle",letterSpacing:"0.5px"}},"PRO")))
+        React.createElement('div',{style:{borderBottom:"2px solid #e2e8f0",display:"flex",flexWrap:"wrap",justifyContent:"center"}},
+          t.tabs.map((tb,i)=>React.createElement('button',{key:i,onClick:()=>setTab(i),style:{flex:"0 1 auto",padding:"12px 16px",background:"transparent",border:"none",borderBottom:tab===i?"3px solid #0f172a":"3px solid transparent",color:tab===i?"#0f172a":"#94a3b8",fontWeight:700,fontSize:14,cursor:"pointer",whiteSpace:"nowrap",marginBottom:"-2px",position:"relative"}},tb,(i===2||i===3)&&React.createElement('span',{style:{fontSize:9,fontWeight:800,color:"#7c3aed",background:"#ede9fe",borderRadius:4,padding:"1px 5px",marginLeft:5,verticalAlign:"middle",letterSpacing:"0.5px"}},"PRO")))
         ),
         React.createElement('div',{style:{padding:24}},
           React.createElement('div',{style:{display:tab===0?"block":"none"}},React.createElement(CreateTab,{t,lang,email,usage,setUsage,saveEmail,setTab,onCreatePrompt:createPrompt})),
