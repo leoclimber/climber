@@ -1,6 +1,8 @@
 /* Date arithmetic is in calendar days; monetary sums use integer cents. */
 const SF={
- today(){const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Dublin',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());return ['year','month','day'].map(k=>p.find(x=>x.type===k).value).join('-');},
+ // Match the device calendar, not Dublin or UTC. Receipt dates stay date-only.
+ today(now=new Date()){return [String(now.getFullYear()).padStart(4,'0'),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');},
+ timeZone(){return new Intl.DateTimeFormat().resolvedOptions().timeZone||'local';},
  validDate(d){return /^\d{4}-\d{2}-\d{2}$/.test(d)&&d>='1900-01-01'&&Number.isFinite(Date.parse(d+'T12:00Z'))&&new Date(d+'T12:00Z').toISOString().slice(0,10)===d;},
  shift(d,n){return new Date(Date.parse(d+'T12:00Z')+n*86400000).toISOString().slice(0,10);},
  number(raw,places=2,zero=false){let s=String(raw??'').trim();if(s.includes(',')){if(!/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d+)?$/.test(s))throw Error('Use um número como 1500,00.');s=s.replace(/\./g,'').replace(',','.');}if(!/^\d+(?:\.\d+)?$/.test(s))throw Error('Informe um número positivo.');let [a,b='']=s.split('.');if(b.length>places)throw Error('Casas decimais em excesso.');let n=BigInt(a)*10n**BigInt(places)+BigInt(b.padEnd(places,'0'));if(n>100000000000n||n<0n||(!zero&&n===0n))throw Error('Valor fora do intervalo permitido.');return Number(n);},
